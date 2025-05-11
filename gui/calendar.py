@@ -1,115 +1,95 @@
-import calendar
-from datetime import date, datetime
-from tkinter import messagebox
 import tkinter as tk
+from tkinter import messagebox, font
+from tkcalendar import Calendar
+import datetime
+
+from events.listener import EventListener
+from events.events import Event
+from enums.enums import EventType
+from events.data import FontSizeChangedData
 
 
-class CalendarFrame(tk.Frame):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
+class CalendarFrame(EventListener):
+    def __init__(self, master=None):
+        super().__init__()
+        self.frame = tk.Frame(master)
+        self.events = {}
 
-        self.current_year = date.today().year
-        self.current_month = date.today().month
-        self.selected_date = date.today()
-        self.events = {}  # e.g. {'2025-05-10': ['開會']}
+        self.current_font_size = 10
+        self.base_font = font.Font(size=self.current_font_size)
 
-        # Header：年份、月份選擇
-        nav_frame = tk.Frame(self)
-        nav_frame.pack(pady=10)
+        self.calendar = Calendar(self.frame, selectmode='day', year=2024, month=1, day=1)
+        self.calendar.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
-        self.year_var = tk.StringVar(value=str(self.current_year))
-        self.month_var = tk.StringVar(value=str(self.current_month))
+        self.date_var = tk.StringVar()
+        self.time_var = tk.StringVar()
+        self.desc_var = tk.StringVar()
 
-        # 年份選擇
-        self.year_menu = tk.OptionMenu(nav_frame, values=[str(i) for i in range(2020, 2031)],
-                                           variable=self.year_var, command=self.update_calendar)
-        self.year_menu.pack(side="left", padx=5)
+        tk.Label(self.frame, text="事件日期 (YYYY-MM-DD)：", font=self.base_font).grid(row=1, column=0, sticky="e")
+        tk.Entry(self.frame, textvariable=self.date_var, font=self.base_font).grid(row=1, column=1)
 
-        # 月份選擇
-        self.month_menu = tk.OptionMenu(nav_frame, values=[f"{i}月" for i in range(1, 13)],
-                                            variable=self.month_var, command=self.update_calendar)
-        self.month_menu.pack(side="left", padx=5)
+        tk.Label(self.frame, text="事件時間 (HH:MM 上午/下午)：", font=self.base_font).grid(row=2, column=0, sticky="e")
+        tk.Entry(self.frame, textvariable=self.time_var, font=self.base_font).grid(row=2, column=1)
 
-        # 日曆框
-        self.calendar_frame = tk.Frame(self)
-        self.calendar_frame.pack()
+        tk.Label(self.frame, text="事件描述：", font=self.base_font).grid(row=3, column=0, sticky="e")
+        tk.Entry(self.frame, textvariable=self.desc_var, font=self.base_font).grid(row=3, column=1)
 
-        # 行程欄
-        self.event_box = tk.Textbox(self, height=100)
-        self.event_box.pack(pady=10, fill="x", padx=10)
-
-        # 按鈕
-        btn_row = tk.Frame(self)
-        btn_row.pack(pady=5)
-        tk.Button(btn_row, text="新增行程", command=self.add_event).pack(side="left", padx=10)
-        tk.Button(btn_row, text="刪除所有", command=self.delete_event).pack(side="left", padx=10)
-
-        self.draw_calendar()
-
-    def update_calendar(self, *args):
-        # 更新年份與月份後繪製日曆
-        self.current_year = int(self.year_var.get())
-        self.current_month = int(self.month_var.get().replace('月', ''))
-        self.draw_calendar()
-
-    def draw_calendar(self):
-        # 清空舊的日曆畫面
-        for widget in self.calendar_frame.winfo_children():
-            widget.destroy()
-
-        cal = calendar.monthcalendar(self.current_year, self.current_month)
-
-        # 星期標題列
-        header_row = tk.Frame(self.calendar_frame)
-        header_row.pack()
-        for day in ["一", "二", "三", "四", "五", "六", "日"]:
-            lbl = tk.Label(header_row, text=day, width=4)
-            lbl.pack(side="left", padx=4)
-
-        # 日期按鈕列
-        for week in cal:
-            row = tk.Frame(self.calendar_frame)
-            row.pack()
-            for day in week:
-                if day == 0:
-                    tk.Label(row, text=" ", width=4).pack(side="left", padx=4)
-                else:
-                    btn = tk.Button(
-                        row,
-                        text=str(day),
-                        width=4,
-                        command=lambda d=day: self.select_day(d)
-                    )
-                    btn.pack(side="left", padx=4)
-
-    def select_day(self, day):
-        # 選擇日期後更新行程框
-        self.selected_date = date(self.current_year, self.current_month, day)
-        self.update_event_box()
-
-    def update_event_box(self):
-        # 更新行程框顯示
-        self.event_box.delete("1.0", "end")
-        key = self.selected_date.isoformat()
-        events = self.events.get(key, [])
-        for event in events:
-            self.event_box.insert("end", f"{event}\n")
+        tk.Button(self.frame, text="新增事件", command=self.add_event, font=self.base_font).grid(row=4, column=0, pady=10)
+        tk.Button(self.frame, text="刪除事件", command=self.delete_event, font=self.base_font).grid(row=4, column=1, pady=10)
+        tk.Button(self.frame, text="查看所有事件", command=self.view_events, font=self.base_font).grid(row=4, column=2, pady=10)
 
     def add_event(self):
-        # 新增行程
-        text = self.event_box.get("1.0", "end").strip()
-        if not text:
-            messagebox.showwarning("錯誤", "請輸入行程內容")
+        date = self.date_var.get()
+        time = self.time_var.get()
+        desc = self.desc_var.get()
+
+        if not date or not time or not desc:
+            messagebox.showwarning("輸入錯誤", "請填寫所有欄位。")
             return
-        key = self.selected_date.isoformat()
-        self.events.setdefault(key, []).append(text)
-        messagebox.showinfo("成功", f"已新增行程：{text}")
-        self.update_event_box()
+
+        try:
+            datetime.datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            messagebox.showwarning("輸入錯誤", "日期格式錯誤，請使用 YYYY-MM-DD。")
+            return
+
+        self.events[(date, time)] = desc
+        messagebox.showinfo("新增成功", f"事件「{desc}」已新增至 {date} {time}。")
+        self.clear_inputs()
 
     def delete_event(self):
-        # 刪除選中日期所有行程
-        key = self.selected_date.isoformat()
-        if key in self.events:
-            del self.events[key]
-            messagebox.showinfo("刪除", f"已刪除 {key} 所有行程")
-            self.update_event_box()
+        date = self.date_var.get()
+        time = self.time_var.get()
+
+        if not date or not time:
+            messagebox.showwarning("輸入錯誤", "請輸入日期與時間以刪除事件。")
+            return
+
+        if (date, time) in self.events:
+            del self.events[(date, time)]
+            messagebox.showinfo("刪除成功", f"已刪除 {date} {time} 的事件。")
+        else:
+            messagebox.showwarning("找不到事件", "找不到指定的事件。")
+        self.clear_inputs()
+
+    def view_events(self):
+        if not self.events:
+            messagebox.showinfo("目前無事件", "您尚未新增任何事件。")
+        else:
+            all_events = "\n".join([f"{d} {t}：{desc}" for (d, t), desc in self.events.items()])
+            messagebox.showinfo("所有事件", all_events)
+
+    def clear_inputs(self):
+        self.date_var.set("")
+        self.time_var.set("")
+        self.desc_var.set("")
+
+    def on_event(self, event: Event):
+        if event.type == EventType.FS_CHANGED:
+            fs_data = event.data
+            if isinstance(fs_data, FontSizeChangedData):
+                self.current_font_size = fs_data.font_size
+                self.base_font.configure(size=self.current_font_size)
+                for widget in self.frame.winfo_children():
+                    if isinstance(widget, (tk.Label, tk.Entry, tk.Button)):
+                        widget.configure(font=self.base_font)
