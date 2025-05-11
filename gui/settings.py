@@ -14,7 +14,7 @@ class Settings(EventListener):
         self.font_var = tk.IntVar(value=10)
         self.color_var = tk.StringVar(value="green")
 
-        self.title = tk.Label(self.frame, text="Settings", font=font.Font(family='Arial', size=28))
+        self.title = tk.Label(self.frame, text="設定", font=font.Font(family='Arial', size=28))
         self.title.pack(pady=(10, 5))
 
         self.font_size_label = tk.Label(self.frame, text="字體大小")
@@ -38,5 +38,5 @@ class Settings(EventListener):
         data = FontSizeChangedData(fs)
         event = Event(EventType.FS_CHANGED, data)
         event.emit()
-        self.font_size_label.configure(text=str(fs), font=font.Font(size=fs))
+        self.font_size_label.configure(font=font.Font(size=fs))
         self.font_size_show_label.configure(text=str(fs), font=font.Font(size=fs))
