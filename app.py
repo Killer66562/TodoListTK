@@ -5,6 +5,7 @@ from enums.enums import FrameType, EventType
 from gui.add_tag import AddTag
 from gui.input_row import InputRow
 from gui.sidebar import Sidebar
+from gui.settings import Settings
 
 
 class TodoList(EventListener):
@@ -22,8 +23,17 @@ class TodoList(EventListener):
         self.input_row = InputRow(self.window, FrameType.INDEX, "Test")
         self.input_row.frame.pack(fill="x")
 
+        self.current_frame = self.input_row.frame
+        self.settings = Settings()
+
         self.add_handler(EventType.INPUT_ROW_BTN_CLICKED, self.input_data_handler)
         self.add_handler(EventType.TAG_ADD_BTN_CLICKED, self.on_add_tag_btn_clicked_event)
+        self.add_handler(EventType.SETTINGS_BTN_CLICKED, self.on_settings_btn_clicked)
+
+    def on_settings_btn_clicked(self, data: EventData):
+        self.input_row.frame.pack_forget()
+        self.current_frame = self.settings.frame
+        self.current_frame.pack(fill="both")
 
     def on_add_tag_btn_clicked_event(self, data: EventData):
         if not self.add_tag:

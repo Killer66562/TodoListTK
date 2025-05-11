@@ -1,8 +1,9 @@
 import tkinter as tk
+from tkinter import font
 from events.listener import EventListener
 from gui.popup import Popup
 from events.events import Event
-from events.data import EventData, InputRowBtnClickedData
+from events.data import EventData, FontSizeChangedData, InputRowBtnClickedData
 from enums.enums import EventType, FrameType
 
 
@@ -31,6 +32,12 @@ class InputRow(EventListener):
         self.add_handler(EventType.INDEX_BTN_CLICKED, self.on_index_event)
         self.add_handler(EventType.TODAY_BTN_CLICKED, self.on_today_event)
         self.add_handler(EventType.PREVIEW_BTN_CLICKED, self.on_preview_event)
+        self.add_handler(EventType.FS_CHANGED, self.on_fs_changed)
+
+    def on_fs_changed(self, data: FontSizeChangedData):
+        self.label.configure(font=font.Font(size=data.font_size))
+        self.btn.configure(font=font.Font(size=data.font_size))
+        self.entry.configure(font=font.Font(size=data.font_size))
 
     def on_index_event(self, data: EventData):
 

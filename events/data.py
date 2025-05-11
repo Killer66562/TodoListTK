@@ -35,3 +35,9 @@ class Todo:
         self.name = name
         self.starts = starts_at
         self.ends_at = ends_at
+
+
+class FontSizeChangedData(EventData):
+    def __init__(self, font_size: int):
+        super().__init__()
+        self.font_size = font_size

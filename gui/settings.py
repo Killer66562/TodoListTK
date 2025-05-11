@@ -1,26 +1,42 @@
 import tkinter as tk
+from tkinter import font
+
+from events.data import FontSizeChangedData
+from events.events import Event
+from events.listener import EventListener
+from enums.enums import EventType
 
 
-def show_settings(root, content_area):
+class Settings(EventListener):
+    def __init__(self):
+        self.frame = tk.Frame()
 
-    # 外層容器
-    settings_frame = tk.Frame(content_area)
-    settings_frame.pack(expand=True, fill="both", pady=20, padx=20)
-    
-    # 標題
-    title_label = tk.Label(settings_frame, text="應用程式設定", font=tk.Font(size=20, weight="bold"))
-    title_label.pack(pady=(0, 20))
+        self.font_var = tk.IntVar(value=10)
+        self.color_var = tk.StringVar(value="green")
 
-    # 字體大小
-    font_frame = tk.Frame(settings_frame, fg_color="transparent")
-    font_frame.pack(pady=10, fill="x")
+        self.title = tk.Label(self.frame, text="Settings", font=font.Font(family='Arial', size=28))
+        self.title.pack(pady=(10, 5))
 
-    font_size_label = tk.Label(font_frame, text="字體大小", anchor="w")
-    font_size_label.pack(side="left", padx=10)
+        self.font_size_label = tk.Label(self.frame, text="字體大小")
+        self.font_size_label.pack(ipadx=5, ipady=5)
 
-    font_size_var = tk.IntVar(value=16)
-    font_size_entry = tk.Entry(font_frame, textvariable=font_size_var)
-    font_size_entry.pack(side="left", fill="x", padx=10, expand=True)
+        self.font_size_scrollbar = tk.Scale(
+            self.frame,
+            from_=self.font_var.get(),
+            to=14,
+            orient="horizontal",
+            command=self.on_fs_changed,
+            variable=self.font_var
+        )
+        self.font_size_scrollbar.pack(ipadx=5, ipady=5, fill="x", padx=10)
 
-    apply_font_button = tk.Button(font_frame, text="套用字體大小")
-    apply_font_button.pack(side="right", padx=10)
+        self.font_size_show_label = tk.Label(self.frame, text=str(self.font_var.get()))
+        self.font_size_show_label.pack()
+
+    def on_fs_changed(self, _):
+        fs = self.font_var.get()
+        data = FontSizeChangedData(fs)
+        event = Event(EventType.FS_CHANGED, data)
+        event.emit()
+        self.font_size_label.configure(text=str(fs), font=font.Font(size=fs))
+        self.font_size_show_label.configure(text=str(fs), font=font.Font(size=fs))

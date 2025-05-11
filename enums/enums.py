@@ -21,3 +21,5 @@ class EventType(Enum):
     MY_ITEMS_BTN_CLICKED = auto()
 
     INPUT_ROW_BTN_CLICKED = auto()
+
+    COLOR_MODE_CHANGED = auto()
