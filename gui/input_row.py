@@ -15,12 +15,11 @@ class InputRow(EventListener):
         self.text_var = tk.StringVar(value="")
 
         self.frame = tk.Frame(master)
-        self.frame.pack()
 
-        self.label = tk.Label(master, text=name)
+        self.label = tk.Label(self.frame, text=name)
         self.label.pack(side="top", anchor="w")
 
-        self.bottom_frame = tk.Frame(master)
+        self.bottom_frame = tk.Frame(self.frame)
         self.bottom_frame.pack(fill="x")
 
         self.entry = tk.Entry(self.bottom_frame, textvariable=self.text_var)

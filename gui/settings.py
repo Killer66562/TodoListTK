@@ -8,8 +8,8 @@ from enums.enums import EventType
 
 
 class Settings(EventListener):
-    def __init__(self):
-        self.frame = tk.Frame()
+    def __init__(self, master):
+        self.frame = tk.Frame(master)
 
         self.font_var = tk.IntVar(value=10)
         self.color_var = tk.StringVar(value="green")

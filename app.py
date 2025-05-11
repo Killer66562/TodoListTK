@@ -1,3 +1,4 @@
+from gui.calendar import CalendarFrame
 import tkinter as tk
 from events.data import EventData, InputRowBtnClickedData
 from events.listener import EventListener
@@ -21,19 +22,27 @@ class TodoList(EventListener):
         self.sidebar.frame.pack(side="left", fill="y")
 
         self.input_row = InputRow(self.window, FrameType.INDEX, "Test")
-        self.input_row.frame.pack(fill="x")
+        self.settings = Settings(self.window)
+        self.calendar = CalendarFrame(self.window)
 
-        self.current_frame = self.input_row.frame
-        self.settings = Settings()
+        self.current_frame = None
 
         self.add_handler(EventType.INPUT_ROW_BTN_CLICKED, self.input_data_handler)
         self.add_handler(EventType.TAG_ADD_BTN_CLICKED, self.on_add_tag_btn_clicked_event)
+        self.add_handler(EventType.CALANDER_BTN_CLICKED, self.on_calendar_btn_clicked)
         self.add_handler(EventType.SETTINGS_BTN_CLICKED, self.on_settings_btn_clicked)
 
+    def switch_frame(self, frame: tk.Frame):
+        if self.current_frame is frame:
+            return
+        if self.current_frame:
+            self.current_frame.pack_forget()
+            self.current_frame.update()
+        self.current_frame = frame
+        self.current_frame.pack(fill="both", expand=True)
+
     def on_settings_btn_clicked(self, data: EventData):
-        self.input_row.frame.pack_forget()
-        self.current_frame = self.settings.frame
-        self.current_frame.pack(fill="both")
+        self.switch_frame(self.settings.frame)
 
     def on_add_tag_btn_clicked_event(self, data: EventData):
         if not self.add_tag:
@@ -41,6 +50,9 @@ class TodoList(EventListener):
             self.add_tag.window.bind("<Destroy>", self.on_add_tag_destroy)
             self.add_tag.window.focus()
             self.add_tag.window.mainloop()
+
+    def on_calendar_btn_clicked(self, data: EventData):
+        self.switch_frame(self.calendar.frame)
 
     def on_add_tag_destroy(self, _):
         self.add_tag = None
@@ -50,6 +62,7 @@ class TodoList(EventListener):
         print(data.value)
 
     def run(self):
+        self.switch_frame(self.input_row.frame)
         self.window.mainloop()
 
 

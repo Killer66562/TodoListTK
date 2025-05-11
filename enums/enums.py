@@ -1,6 +1,7 @@
 from enum import Enum, auto
 
 
+DB_URL="sqlite:///database.sqlite3"
 class FrameType(Enum):
     INDEX = auto()
     TODAY = auto()

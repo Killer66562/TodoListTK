@@ -44,7 +44,7 @@ class Sidebar(EventListener):
         self.title_label.pack(pady=10)
         self._components.append(self.title_label)
 
-        self.index_btn = btn = tk.Button(self.bottom_frame, text="收件箱", command=self.on_index_btn_clicked)
+        self.index_btn = btn = tk.Button(self.bottom_frame, text="全部", command=self.on_index_btn_clicked)
         self.index_btn.pack(fill="x", pady=5, padx=10)
         self._components.append(self.index_btn)
 
@@ -52,7 +52,7 @@ class Sidebar(EventListener):
         self.today_btn.pack(fill="x", pady=5, padx=10)
         self._components.append(self.today_btn)
 
-        self.preview_btn = btn = tk.Button(self.bottom_frame, text="預覽", command=self.on_preview_btn_clicked)
+        self.preview_btn = btn = tk.Button(self.bottom_frame, text="近期", command=self.on_preview_btn_clicked)
         self.preview_btn.pack(fill="x", pady=5, padx=10)
         self._components.append(self.preview_btn)
             
@@ -60,6 +60,7 @@ class Sidebar(EventListener):
         self.calendar_button = tk.Button(
             self.bottom_frame,
             text="行事曆",
+            command=self.on_calander_btn_clicked
         )
         self.calendar_button.pack(pady=10, padx=10, fill="x")
         self._components.append(self.calendar_button)
