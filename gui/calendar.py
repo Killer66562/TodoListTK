@@ -18,17 +18,17 @@ class CalendarFrame(EventListener):
         self.current_font_size = 10
         self.base_font = font.Font(size=self.current_font_size)
 
-        self.calendar = Calendar(self.frame, selectmode='day', year=2024, month=1, day=1)
+        self.calendar = Calendar(self.frame, selectmode='day', year=2025, month=1, day=1)
         self.calendar.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
         self.date_var = tk.StringVar()
         self.time_var = tk.StringVar()
         self.desc_var = tk.StringVar()
 
-        tk.Label(self.frame, text="事件日期 (YYYY-MM-DD)：", font=self.base_font).grid(row=1, column=0, sticky="e")
+        tk.Label(self.frame, text="事件日期 (YYYY-MM-DD):", font=self.base_font).grid(row=1, column=0, sticky="e")
         tk.Entry(self.frame, textvariable=self.date_var, font=self.base_font).grid(row=1, column=1)
 
-        tk.Label(self.frame, text="事件時間 (HH:MM 上午/下午)：", font=self.base_font).grid(row=2, column=0, sticky="e")
+        tk.Label(self.frame, text="事件時間 (HH:MM 上午/下午):", font=self.base_font).grid(row=2, column=0, sticky="e")
         tk.Entry(self.frame, textvariable=self.time_var, font=self.base_font).grid(row=2, column=1)
 
         tk.Label(self.frame, text="事件描述：", font=self.base_font).grid(row=3, column=0, sticky="e")
@@ -76,7 +76,7 @@ class CalendarFrame(EventListener):
         if not self.events:
             messagebox.showinfo("目前無事件", "您尚未新增任何事件。")
         else:
-            all_events = "\n".join([f"{d} {t}：{desc}" for (d, t), desc in self.events.items()])
+            all_events = "\n".join([f"{d} {t}:{desc}" for (d, t), desc in self.events.items()])
             messagebox.showinfo("所有事件", all_events)
 
     def clear_inputs(self):
