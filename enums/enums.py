@@ -12,9 +12,9 @@ class EventType(Enum):
     FONT_CHANGED = auto()
     FS_CHANGED = auto()
 
-    INDEX_BTN_CLICKED = auto()
-    TODAY_BTN_CLICKED = auto()
-    PREVIEW_BTN_CLICKED = auto()
+    INDEX_BTN_CLICKED = auto()      # 全部
+    TODAY_BTN_CLICKED = auto()      # 今天
+    PREVIEW_BTN_CLICKED = auto()    # 近期
     CALANDER_BTN_CLICKED = auto()
     SETTINGS_BTN_CLICKED = auto()
     TAG_ADD_BTN_CLICKED = auto()

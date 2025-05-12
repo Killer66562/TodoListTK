@@ -40,13 +40,13 @@ class InputRow(EventListener):
 
     def on_index_event(self, data: EventData):
 
-        self.label.configure(text="收件箱")
+        self.label.configure(text="全部")
 
     def on_today_event(self, data: EventData):
         self.label.configure(text="今天")
 
     def on_preview_event(self, data: EventData):
-        self.label.configure(text="預覽")
+        self.label.configure(text="近期")
 
     def on_btn_clicked(self):
         event = Event(

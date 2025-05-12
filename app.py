@@ -7,6 +7,9 @@ from gui.add_tag import AddTag
 from gui.input_row import InputRow
 from gui.sidebar import Sidebar
 from gui.settings import Settings
+from gui.all import AllFrame
+from gui.today import TodayFrame
+from gui.preview import PreviewFrame
 
 
 class TodoList(EventListener):
@@ -24,6 +27,9 @@ class TodoList(EventListener):
         self.input_row = InputRow(self.window, FrameType.INDEX, "Test")
         self.settings = Settings(self.window)
         self.calendar = CalendarFrame(self.window)
+        self.index = AllFrame(self.window)
+        self.today = TodayFrame(self.window)
+        self.preview = PreviewFrame(self.window)
 
         self.current_frame = None
 
@@ -31,6 +37,9 @@ class TodoList(EventListener):
         self.add_handler(EventType.TAG_ADD_BTN_CLICKED, self.on_add_tag_btn_clicked_event)
         self.add_handler(EventType.CALANDER_BTN_CLICKED, self.on_calendar_btn_clicked)
         self.add_handler(EventType.SETTINGS_BTN_CLICKED, self.on_settings_btn_clicked)
+        self.add_handler(EventType.INDEX_BTN_CLICKED, self.on_index_btn_clicked)
+        self.add_handler(EventType.TODAY_BTN_CLICKED, self.on_today_btn_clicked)
+        self.add_handler(EventType.PREVIEW_BTN_CLICKED, self.on_preview_btn_clicked)
 
     def switch_frame(self, frame: tk.Frame):
         if self.current_frame is frame:
@@ -40,6 +49,14 @@ class TodoList(EventListener):
             self.current_frame.update()
         self.current_frame = frame
         self.current_frame.pack(fill="both", expand=True)
+
+    def on_index_btn_clicked(self, data: EventData):
+        self.index.load_all_events()
+        self.switch_frame(self.index.frame)
+
+    def on_today_btn_clicked(self, data: EventData):
+        self.today.load_today_events()
+        self.switch_frame(self.today.frame)
 
     def on_settings_btn_clicked(self, data: EventData):
         self.switch_frame(self.settings.frame)
@@ -53,6 +70,10 @@ class TodoList(EventListener):
 
     def on_calendar_btn_clicked(self, data: EventData):
         self.switch_frame(self.calendar.frame)
+
+    def on_preview_btn_clicked(self, data: EventData):
+        self.preview.load_preview_events()
+        self.switch_frame(self.preview.frame)
 
     def on_add_tag_destroy(self, _):
         self.add_tag = None
