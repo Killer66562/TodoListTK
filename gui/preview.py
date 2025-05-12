@@ -37,14 +37,14 @@ class PreviewFrame(EventListener):
         self.add_handler(EventType.FS_CHANGED, self.on_fs_changed)
 
     def load_preview_events(self):
-        today = datetime.today()
-        yesterday = today - timedelta(days=1)
-        tomorrow = today + timedelta(days=1)
+        today = datetime.today().date()
+        start_time = datetime.combine(today - timedelta(days=1), datetime.min.time())  # 昨天 00:00
+        end_time = datetime.combine(today + timedelta(days=2), datetime.min.time())    # 後天 00:00，不含
 
         with Session(self.engine) as session:
             stmt = select(Activity).where(
-                (Activity.starts_at >= yesterday) &
-                (Activity.starts_at <= tomorrow)
+                (Activity.starts_at >= start_time) &
+                (Activity.starts_at < end_time)
             )
             results = session.scalars(stmt).all()
             results.sort(key=lambda a: a.starts_at)
