@@ -42,11 +42,8 @@ class PreviewFrame(EventListener):
         end_time = datetime.combine(today + timedelta(days=2), datetime.min.time())    # 後天 00:00，不含
 
         with Session(self.engine) as session:
-            stmt = select(Activity).where(
-                (Activity.starts_at >= start_time) &
-                (Activity.starts_at < end_time)
-            )
-            results = session.scalars(stmt).all()
+            stmt = session.query(Activity).filter(Activity.starts_at >= start_time).filter(Activity.starts_at < end_time)
+            results = stmt.all()
             results.sort(key=lambda a: a.starts_at)
 
         for row in self.tree.get_children():

@@ -1,14 +1,17 @@
 import tkinter as tk
 from tkinter import messagebox
 
-from enums.enums import EventType
-from events.data import EventData
 from events.listener import EventListener
 
+from enums.enums import DB_URL
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from models.models import Tag
 
 class AddTag(EventListener):
     def __init__(self, master):
         super().__init__()
+        self.engine = create_engine(DB_URL)
         self.tag_var = tk.StringVar(value="")
 
         self.window = tk.Toplevel(master)
@@ -29,5 +32,13 @@ class AddTag(EventListener):
         tag = self.tag_var.get()
         if not tag:
             messagebox.showwarning("警告", "請輸入標籤", parent=self.window)
-        else:
-            print(tag)
+            return
+        with Session(self.engine) as session:
+            tag_model = session.query(Tag).filter(Tag.name == tag).first()
+            if tag_model:
+                messagebox.showwarning("警告", "標籤已存在", parent=self.window)
+                return
+            tag_model = Tag(name=tag)
+            session.add(tag_model)
+            session.commit()
+        messagebox.showinfo("成功", "標籤新增成功", parent=self.window)

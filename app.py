@@ -2,9 +2,8 @@ from gui.calendar import CalendarFrame
 import tkinter as tk
 from events.data import EventData, InputRowBtnClickedData
 from events.listener import EventListener
-from enums.enums import FrameType, EventType
+from enums.enums import EventType
 from gui.add_tag import AddTag
-from gui.input_row import InputRow
 from gui.sidebar import Sidebar
 from gui.settings import Settings
 from gui.all import AllFrame
@@ -24,7 +23,6 @@ class TodoList(EventListener):
         self.sidebar = Sidebar(self.window)
         self.sidebar.frame.pack(side="left", fill="y")
 
-        self.input_row = InputRow(self.window, FrameType.INDEX, "Test")
         self.settings = Settings(self.window)
         self.calendar = CalendarFrame(self.window)
         self.index = AllFrame(self.window)
@@ -83,7 +81,7 @@ class TodoList(EventListener):
         print(data.value)
 
     def run(self):
-        self.switch_frame(self.input_row.frame)
+        self.switch_frame(self.calendar.frame)
         self.window.mainloop()
 
 

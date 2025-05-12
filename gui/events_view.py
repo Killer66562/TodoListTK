@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from events.listener import EventListener
 from tkinter import messagebox, ttk
 from enums.enums import DB_URL
 
