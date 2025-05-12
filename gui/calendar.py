@@ -114,7 +114,6 @@ class CalendarFrame(EventListener):
         event.emit()
 
     def delete_event(self):
-        print("Test")
         if not self._selected_activity_id:
             messagebox.showwarning("警告", "請選擇你要刪除的活動")
             return

@@ -65,14 +65,12 @@ class TodoList(EventListener):
             messagebox.showerror("錯誤", "資料庫錯誤")
 
     def on_activity_remove(self, data: ActivityRemoveData):
-        print(data.activity_id)
         try:
             self.db_manager.remove_activity(data.activity_id)
             event = Event(EventType.ACTIVITY_REMOVED, ActivityRemovedData(data.activity_id))
             messagebox.showinfo("成功", "活動刪除成功")
             event.emit()
         except Exception as e:
-            print(e)
             messagebox.showerror("錯誤", "資料庫錯誤")
 
     #收到新增標籤的事件時要做的事

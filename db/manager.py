@@ -24,7 +24,7 @@ class DatabaseManager:
         with Session(self._engine) as session:
             activity = session.query(db.Activity).filter(db.Activity.id_ == activity_id).first()
             if not activity:
-                print("No activity")
+                raise ValueError("Cannot find the activity")
             session.delete(activity)
             session.commit()
 
@@ -49,7 +49,6 @@ class DatabaseManager:
                     description=activity.name
                 ) for activity in activities
             ]
-            print(local_activities)
             return local_activities
         
     def add_tag(self, name: str) -> local.Tag:
