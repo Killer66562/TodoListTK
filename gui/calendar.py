@@ -4,21 +4,18 @@ from tkcalendar import Calendar
 import datetime
 
 from events.listener import EventListener
+from enums.enums import EventType
 from events.events import Event
-from enums.enums import EventType, DB_URL
-from events.data import FontSizeChangedData
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from events.data import ActivitiesLoadData, ActivityAddData, ActivityRemoveData, ActivityRemovedData, ActivitySelectedData, FontSizeChangedData
 
 from gui.events_view import EventsView
-from models.models import Activity, Tag
 
 
 class CalendarFrame(EventListener):
-    def __init__(self, master=None):
+    def __init__(self, master):
         super().__init__()
-        self.engine = create_engine(DB_URL)
+        self._selected_activity_id = None
+
         self.frame = tk.Frame(master)
 
         self.current_font_size = 10
@@ -49,10 +46,15 @@ class CalendarFrame(EventListener):
         self.btns_frame.pack(fill="x")
 
         tk.Button(self.btns_frame, text="新增活動", command=self.add_event, font=self.base_font).pack(side="left")
-        tk.Button(self.btns_frame, text="刪除活動", command=self.delete_event, font=self.base_font).pack(side="left")
+        self.delete_btn = tk.Button(self.btns_frame, text="刪除活動", command=self.delete_event, font=self.base_font, state="disabled")
+        self.delete_btn.pack(side="left")
         tk.Button(self.btns_frame, text="查看所有活動", command=self.view_events, font=self.base_font).pack(side="left")
+        tk.Button(self.btns_frame, text="回到今天", command=self.to_today, font=self.base_font).pack(side="left")
 
         today = datetime.date.today()
+
+        self.tips = tk.Label(self.frame, fg="#bb3300", text="提示：點擊行事曆的日期，可以查看當天的活動。")
+        self.tips.pack(anchor="w")
 
         self.calendar = Calendar(self.frame, selectmode='day', year=today.year, month=today.month, day=today.day, date_pattern="y-mm-dd")
         self.calendar.bind("<<CalendarSelected>>", self.on_day_selected)
@@ -64,13 +66,33 @@ class CalendarFrame(EventListener):
         self.events_view = EventsView(self.frame)
         self.events_view.frame.pack(fill="both", expand=True)
 
-        self.add_handler(EventType.FS_CHANGED, self.on_fs_changed)
+        self.add_handler(EventType.ACTIVITY_SELECTED, self.on_activity_selected)
+        self.add_handler(EventType.ACTIVITY_REMOVED, self.on_activity_removed)
+
+    def to_today(self):
+        today = datetime.datetime.today()
+        self.calendar.selection_set(
+            today
+        )
+        self.on_day_selected(None)
+
+    def on_activity_selected(self, data: ActivitySelectedData):
+        self._selected_activity_id = data.id_
+        if not self._selected_activity_id:
+            self.delete_btn.configure(state="disabled")
+        else:
+            self.delete_btn.configure(state="normal")
+
+    def on_activity_removed(self, data: ActivityRemovedData):
+        self._selected_activity_id = None
         self.on_day_selected(None)
 
     def on_day_selected(self, _):
+        self.on_activity_selected(ActivitySelectedData(None))
         date = self.calendar.get_date()
         dt = datetime.datetime.strptime(date, "%Y-%m-%d")
-        self.events_view.load_events(dt)
+        event = Event(EventType.ACTIVITIES_LOAD, ActivitiesLoadData(dt))
+        event.emit()
 
     def add_event(self):
         starts_at = self.starts_at_var.get()
@@ -88,16 +110,16 @@ class CalendarFrame(EventListener):
             messagebox.showwarning("輸入錯誤", "日期格式錯誤，請使用 YYYY-MM-DD HH:MM。")
             return
         
-        try:
-            self.events_view.add_event(starts_at, ends_at, desc)
-        except:
-            pass
+        event = Event(EventType.ACTIVITY_ADD, ActivityAddData(starts_at, ends_at, desc))
+        event.emit()
 
     def delete_event(self):
-        try:
-            self.events_view.remove_event()
-        except:
-            pass
+        print("Test")
+        if not self._selected_activity_id:
+            messagebox.showwarning("警告", "請選擇你要刪除的活動")
+            return
+        event = Event(EventType.ACTIVITY_REMOVE, ActivityRemoveData(self._selected_activity_id))
+        event.emit()
 
     def view_events(self):
         if not self.events:
@@ -107,8 +129,8 @@ class CalendarFrame(EventListener):
             messagebox.showinfo("所有事件", all_events)
 
     def clear_inputs(self):
-        self.date_var.set("")
-        self.time_var.set("")
+        self.starts_at_var.set("")
+        self.ends_at_var.set("")
         self.desc_var.set("")
 
     def on_fs_changed(self, data: FontSizeChangedData):

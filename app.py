@@ -1,6 +1,9 @@
+from datetime import datetime
+from tkinter import messagebox
+from events.events import Event
 from gui.calendar import CalendarFrame
 import tkinter as tk
-from events.data import EventData, InputRowBtnClickedData
+from events.data import ActivitiesLoadData, ActivitiesLoadedData, ActivityAddData, ActivityAddedData, ActivityRemoveData, ActivityRemovedData, EventData, InputRowBtnClickedData, TagAddData, TagAddedData
 from events.listener import EventListener
 from enums.enums import EventType
 from gui.add_tag import AddTag
@@ -10,11 +13,13 @@ from gui.all import AllFrame
 from gui.today import TodayFrame
 from gui.preview import PreviewFrame
 
+from db.manager import DatabaseManager
+
 
 class TodoList(EventListener):
     def __init__(self):
         super().__init__()
-        self.add_tag = None
+        self.db_manager = DatabaseManager("sqlite:///database.sqlite3")
 
         self.window = tk.Tk()
         self.window.title("TodoList")
@@ -31,13 +36,62 @@ class TodoList(EventListener):
 
         self.current_frame = None
 
-        self.add_handler(EventType.INPUT_ROW_BTN_CLICKED, self.input_data_handler)
+        #按鍵事件
         self.add_handler(EventType.TAG_ADD_BTN_CLICKED, self.on_add_tag_btn_clicked_event)
         self.add_handler(EventType.CALANDER_BTN_CLICKED, self.on_calendar_btn_clicked)
         self.add_handler(EventType.SETTINGS_BTN_CLICKED, self.on_settings_btn_clicked)
         self.add_handler(EventType.INDEX_BTN_CLICKED, self.on_index_btn_clicked)
         self.add_handler(EventType.TODAY_BTN_CLICKED, self.on_today_btn_clicked)
         self.add_handler(EventType.PREVIEW_BTN_CLICKED, self.on_preview_btn_clicked)
+
+        #資料庫交互事件
+        self.add_handler(EventType.ACTIVITY_ADD, self.on_activity_add)
+        self.add_handler(EventType.ACTIVITIES_LOAD, self.on_activities_load)
+        self.add_handler(EventType.TAG_ADD, self.on_tag_add)
+        self.add_handler(EventType.ACTIVITY_REMOVE, self.on_activity_remove)
+
+    #收到新增活動的事件時要做的事
+    def on_activity_add(self, data: ActivityAddData):
+        try:
+            activity = self.db_manager.add_activity(
+                data.description, 
+                data.starts_at, 
+                data.ends_at
+            )
+            event = Event(EventType.ACTIVITY_ADDED, activity)
+            messagebox.showinfo("成功", "活動新增成功")
+            event.emit()
+        except:
+            messagebox.showerror("錯誤", "資料庫錯誤")
+
+    def on_activity_remove(self, data: ActivityRemoveData):
+        print(data.activity_id)
+        try:
+            self.db_manager.remove_activity(data.activity_id)
+            event = Event(EventType.ACTIVITY_REMOVED, ActivityRemovedData(data.activity_id))
+            messagebox.showinfo("成功", "活動刪除成功")
+            event.emit()
+        except Exception as e:
+            print(e)
+            messagebox.showerror("錯誤", "資料庫錯誤")
+
+    #收到新增標籤的事件時要做的事
+    def on_tag_add(self, data: TagAddData):
+        try:
+            tag = self.db_manager.add_tag(data.name)
+            event = Event(EventType.TAG_ADDED, tag)
+            messagebox.showinfo("成功", "活動新增成功")
+            event.emit()
+        except:
+            messagebox.showerror("錯誤", "資料庫錯誤")
+
+    def on_activities_load(self, data: ActivitiesLoadData):
+        try:
+            activities = self.db_manager.get_activities(data.dt, data.dt, data.tags)
+            event = Event(EventType.ACTIVITIES_LOADED, ActivitiesLoadedData(activities))
+            event.emit()
+        except:
+            messagebox.showerror("錯誤", "資料庫錯誤")
 
     def switch_frame(self, frame: tk.Frame):
         if self.current_frame is frame:
@@ -76,11 +130,10 @@ class TodoList(EventListener):
     def on_add_tag_destroy(self, _):
         self.add_tag = None
 
-    def input_data_handler(self, data: InputRowBtnClickedData):
-        print(data.frame_type)
-        print(data.value)
-
     def run(self):
+        event = Event(EventType.ACTIVITIES_LOAD, ActivitiesLoadData(datetime.today(), None))
+        event.emit()
+
         self.switch_frame(self.calendar.frame)
         self.window.mainloop()
 

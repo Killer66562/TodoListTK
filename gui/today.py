@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from enums.enums import DB_URL, EventType
 from events.listener import EventListener
 from events.data import FontSizeChangedData
-from models.models import Activity
+from models.db import Activity
 
 
 class TodayFrame(EventListener):

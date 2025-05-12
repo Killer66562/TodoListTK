@@ -21,6 +21,15 @@ class EventType(Enum):
 
     MY_ITEMS_BTN_CLICKED = auto()
 
-    INPUT_ROW_BTN_CLICKED = auto()
+    ACTIVITY_ADD = auto()
+    ACTIVITY_ADDED = auto()
+    ACTIVITY_REMOVE = auto()
+    ACTIVITY_REMOVED = auto()
+    ACTIVITY_SELECTED = auto()
+    ACTIVITIES_LOAD = auto()
+    ACTIVITIES_LOADED = auto()
 
-    COLOR_MODE_CHANGED = auto()
+    TAG_ADD = auto()
+    TAG_ADDED = auto()
+    TAG_REMOVE = auto()
+    TAG_REMOVED = auto()
