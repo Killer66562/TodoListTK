@@ -28,6 +28,23 @@ class DatabaseManager:
             session.delete(activity)
             session.commit()
 
+    def modify_activity(self, activity_id: int, name: str, starts_at: datetime, ends_at: datetime) -> local.Activity:
+        with Session(self._engine) as session:
+            activity = session.query(db.Activity).filter(db.Activity.id_ == activity_id).first()
+            if not activity:
+                raise ValueError("Cannot find the activity")
+            activity.name = name
+            activity.starts_at = starts_at
+            activity.ends_at = ends_at
+            session.commit()
+            local_activity = local.Activity(
+                id_=activity.id_, 
+                starts_at=activity.starts_at, 
+                ends_at=activity.ends_at, 
+                description=activity.name
+            )
+            return local_activity
+
     def get_activities(self, starts_at: datetime | None, ends_at: datetime | None, tags: list[str] | None = None) -> list[local.Activity]:
         with Session(self._engine) as session:
             query = session.query(db.Activity)
@@ -51,12 +68,26 @@ class DatabaseManager:
             ]
             return local_activities
         
+    def get_activity(self, id_: int | None) -> local.Activity | None:
+        if not id_:
+            return None
+        with Session(self._engine) as session:
+            activity = session.query(db.Activity).filter(db.Activity.id_ == id_).first()
+            if not activity:
+                return None
+            return local.Activity(
+                activity.id_, 
+                activity.starts_at, 
+                activity.ends_at, 
+                activity.name
+            )
+        
     def add_tag(self, name: str) -> local.Tag:
         with Session(self._engine) as session:
             tag = db.Tag(name=name)
             session.add(tag)
             session.commit()
-            tag_local = local.Tag(name=tag.name, activities=[
+            tag_local = local.Tag(id_=tag.id_, name=tag.name, activities=[
                 local.Activity(
                     id_=activity.id_, 
                     starts_at=activity.starts_at, 
@@ -65,3 +96,37 @@ class DatabaseManager:
                 ) for activity in tag.activities
             ])
             return tag_local
+        
+    def remove_tag(self, name: str):
+        with Session(self._engine) as session:
+            tag = session.query(db.Tag).filter(db.Tag.name == name).first()
+            if not tag:
+                raise ValueError()
+            session.delete(tag)
+            session.commit()
+
+    def get_tags(self):
+        with Session(self._engine) as session:
+            tags = session.query(db.Tag).all()
+            local_tags = []
+            for tag in tags:
+                local_tags.append(local.Tag(
+                    tag.id_, 
+                    tag.name
+                ))
+            return local_tags
+        
+    def get_tag(self, name: str):
+        with Session(self._engine) as session:
+            tag = session.query(db.Tag).filter(db.Tag.name == name).first()
+            if not tag:
+                return None
+            return local.Tag(
+                tag.id_, 
+                tag.name, 
+                [local.Activity(
+                    activity.id_, 
+                    activity.starts_at, 
+                    activity.ends_at
+                ) for activity in tag.activities]
+            )

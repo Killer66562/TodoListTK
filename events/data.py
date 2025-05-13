@@ -92,6 +92,10 @@ class TagRemoveData(EventData):
         self.name = name
 
 
+class TagRemovedData(TagRemoveData):
+    def __init__(self, name):
+        super().__init__(name)
+
 class ActivitySelectedData(EventData):
     def __init__(self, id_: int | None):
         super().__init__()
@@ -108,3 +112,9 @@ class ActivitiesLoadedData(EventData):
     def __init__(self, activities: list[Activity]):
         super().__init__()
         self.activities = activities
+
+
+class TagSelectedData(EventData):
+    def __init__(self, name: str):
+        super().__init__()
+        self.name = name

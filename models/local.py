@@ -1,7 +1,13 @@
 from datetime import datetime
 
+import json
+
 
 class Activity:
+    def __repr__(self):
+        return json.dumps(self.__dict__, indent=4)
+    
+
     def __init__(self, id_: int, starts_at: datetime, ends_at: datetime, description: str, tags: list["Tag"] | None = None):
         self.id_ = id_
         self.starts_at = starts_at
@@ -12,6 +18,9 @@ class Activity:
 
 
 class Tag:
+    def __repr__(self):
+        return json.dumps(self.__dict__, indent=4)
+
     def __init__(self, id_: int, name: str, activities: list["Activity"] | None = None):
         self.id_ = id_
         self.name = name

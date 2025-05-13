@@ -35,3 +35,7 @@ class EventType(Enum):
     TAG_REMOVED = auto()
     TAG_LOAD = auto()
     TAG_LOADED = auto()
+    TAG_SELECTED = auto()
+
+    GET_SELECTED_DATE = auto()
+    GET_SELECTED_TAG = auto()

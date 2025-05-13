@@ -59,6 +59,7 @@ class CalendarFrame(EventListener):
         self.calendar = Calendar(self.frame, selectmode='day', year=today.year, month=today.month, day=today.day, date_pattern="y-mm-dd")
         self.calendar.bind("<<CalendarSelected>>", self.on_day_selected)
         self.calendar.pack(fill="both", padx=5, pady=5)
+        self.calendar.calevent_create(datetime.date.today(), "nigger", ["1", "2"])
 
         self.events_label = tk.Label(self.frame, text="今日活動")
         self.events_label.pack(anchor="w")
