@@ -1,6 +1,7 @@
 from datetime import date, datetime
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import ttk
 
 from db.manager import DatabaseManager
 
@@ -10,6 +11,8 @@ from ui.my_calendar import MyCalendar
 from ui.activity_form import ActivityForm
 from ui.activities_view import ActivitiesView
 from ui.tag import TagButton
+
+from ui.styles_setting import create_light_style, create_dark_style
 
 
 class TodoList:
@@ -21,9 +24,13 @@ class TodoList:
         self._window = tk.Tk()
         self._window.title("TodoList")
         self._window.minsize(800, 600)
+        
+        # 測試主題~
+        create_dark_style()
+        create_light_style()
+        ttk.Style().theme_use("dark")
 
         self._main_frame = tk.Frame(self._window)
-        self._settings_frame = tk.Frame(self._window)
 
         self._sidebar = SideBar(self._window, self.on_sidebar_add_tag_btn_clicked)
         self._sidebar.frame.configure(width=200)
