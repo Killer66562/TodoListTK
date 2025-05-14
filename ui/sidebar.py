@@ -57,6 +57,14 @@ class SideBar(Base):
             text="行事曆"
         )
         self.calendar_button.pack(pady=10, padx=10, fill="x")
+        
+        # 任務統計按鈕
+        self.stats_button = ttk.Button(
+            self.bottom_frame,
+            text="任務統計"
+        )
+        self.stats_button.pack(pady=(0, 10), padx=10, fill="x")
+
 
         self.my_items_label = ttk.Label(self.bottom_frame, text="─ 我的項目 ─")
         self.my_items_label.pack(pady=10)
