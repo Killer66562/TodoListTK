@@ -28,7 +28,7 @@ class TodoList:
         # 測試主題~
         create_dark_style()
         create_light_style()
-        ttk.Style().theme_use("dark")
+        ttk.Style().theme_use("light")
 
         self._main_frame = tk.Frame(self._window)
 

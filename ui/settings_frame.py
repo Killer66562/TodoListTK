@@ -1,16 +1,31 @@
 import tkinter as tk
 from tkinter import ttk
-from .base import Base
+from tkinter import font
+from ui.styles_setting import create_dark_style, create_light_style
 
-class SettingsFrame(Base):
-    def __init__(self, master):
-        super().__init__(master)
+class SettingsFrame:
+    def __init__(self, parent):
+        self.parent = parent
+        self.current_theme = "light"
 
-        label = ttk.Label(self.frame, text="設定", font=("Arial", 16))
-        label.pack(pady=20)
+        self.frame = ttk.Frame(parent)
 
-        self.light_btn = ttk.Button(self.frame, text="亮色主題", command=lambda: ttk.Style().theme_use("default"))
-        self.dark_btn = ttk.Button(self.frame, text="暗色主題", command=lambda: ttk.Style().theme_use("clam"))
+        label = ttk.Label(self.frame, text="設定", font=font.Font(family='Arial', size=28))
+        label.pack(pady=10)
 
-        self.light_btn.pack(pady=5)
-        self.dark_btn.pack(pady=5)
+        self.theme_button = ttk.Button(
+            self.frame,
+            text="暗色模式",
+            command=self.toggle_theme
+        )
+        self.theme_button.pack(pady=20)
+
+    def toggle_theme(self):
+        if self.current_theme == "light":
+            create_dark_style()
+            self.current_theme = "dark"
+            self.theme_button.config(text="亮色模式")
+        else:
+            create_light_style()
+            self.current_theme = "light"
+            self.theme_button.config(text="暗色模式")

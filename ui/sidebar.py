@@ -88,7 +88,7 @@ class SideBar(Base):
 
     def toggle(self):
         if self._frame_open:
-            self.frame.configure(width=60)
+            self.frame.configure(width=70)
             self.bottom_frame.pack_forget()
             self.toggle_button.configure(image=self.open_icon)
             self._frame_open = False
