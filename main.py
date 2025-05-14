@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 import tkinter as tk
 from tkinter import messagebox
 
@@ -59,11 +59,21 @@ class TodoList:
         starts_at = datetime(d.year, d.month, d.day, 9, 0)
         ends_at = datetime(d.year, d.month, d.day, 17, 0)
         self._activity_form.reset(starts_at, ends_at)
-        self.update_activities_view(starts_at)
+        all_activities = self._db_manager.get_activities()
+        for activity in all_activities:
+            d_start = activity.starts_at.date()
+            d_end = activity.ends_at.date()
+            tag_start = str(activity.id_) + "_start"
+            tag_end = str(activity.id_) + "_end"
+            self._my_calendar.calendar.calevent_create(date=d_start, text=None, tags=[tag_start])
+            self._my_calendar.calendar.calevent_create(date=d_end, text=None, tags=[tag_end])
+            self._my_calendar.calendar.tag_config(tag_start, background="green")
+            self._my_calendar.calendar.tag_config(tag_end, background="red")
+        self.update_activities_view(d)
 
-    def update_activities_view(self, dt: datetime):
+    def update_activities_view(self, d: date):
         done = self._filter_row.get()
-        activities = self._db_manager.get_activities(dt, dt, done=done)
+        activities = self._db_manager.get_activities(d, done=done)
         self._activities_view.clear()
         for activity in activities:
             self._activities_view.add_activity(activity)

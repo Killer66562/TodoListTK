@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, or_, and_
 from sqlalchemy.orm import Session
 from models import db, local
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 class DatabaseManager:
     def __init__(self, db_url: str):
@@ -48,24 +48,24 @@ class DatabaseManager:
             )
             return local_activity
 
-    def get_activities(self, starts_at: datetime | None, ends_at: datetime | None, tags: list[str] | None = None, done: bool | None = None) -> list[local.Activity]:
+    def get_activities(self, d: date | None = None, tags: list[str] | None = None, done: bool | None = None) -> list[local.Activity]:
         with Session(self._engine) as session:
             query = session.query(db.Activity)
 
             if done is not None:
                 query = query.filter(db.Activity.done == done)
 
-            td_start = datetime(starts_at.year, starts_at.month, starts_at.day, 0, 0)
-            td_end = datetime(ends_at.year, ends_at.month, ends_at.day, 0, 0)
-            if starts_at and ends_at:
-                query = query.filter(or_(
-                    and_(db.Activity.starts_at >= td_start, db.Activity.starts_at < td_start + timedelta(days=1)), 
-                    and_(db.Activity.ends_at >= td_end, db.Activity.ends_at < td_end + timedelta(days=1))
-                ))
-            elif starts_at:
-                query = query.filter(db.Activity.starts_at >= td_start, db.Activity.starts_at < td_start + timedelta(days=1))
-            elif ends_at:
-                query = query.filter(db.Activity.ends_at >= td_end, db.Activity.ends_at < td_end + timedelta(days=1))
+            if d is not None:
+                dt_1 = datetime(d.year, d.month, d.day, 0, 0, 0)
+                dt_2 = datetime(d.year, d.month, d.day, 23, 59, 59)
+
+                query = query.filter(
+                    or_(
+                        and_(db.Activity.starts_at >= dt_1, db.Activity.starts_at <= dt_2), 
+                        and_(db.Activity.ends_at >= dt_1, db.Activity.ends_at <= dt_2), 
+                        and_(dt_1 > db.Activity.starts_at, dt_1 < db.Activity.ends_at)
+                    )
+                )
 
             activities = query.all()
             local_activities = [
