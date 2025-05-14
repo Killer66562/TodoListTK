@@ -4,6 +4,7 @@ from tkinter import messagebox
 
 from db.manager import DatabaseManager
 
+from ui.filter_row import FilterRow
 from ui.sidebar import SideBar
 from ui.my_calendar import MyCalendar
 from ui.activity_form import ActivityForm
@@ -41,6 +42,9 @@ class TodoList:
         self._my_calendar = MyCalendar(self._main_frame, self.on_calander_date_selected)
         self._my_calendar.frame.pack(side="top", fill="x")
 
+        self._filter_row = FilterRow(self._main_frame, self.on_filter_row_option_changed)
+        self._filter_row.frame.pack(anchor="e")
+
         self._activities_view = ActivitiesView(self._main_frame, self.on_activities_view_activity_selected)
         self._activities_view.frame.pack(side="top", fill="both", expand=True)
 
@@ -50,67 +54,63 @@ class TodoList:
         self._current_frame = frame
         self._current_frame.pack(side="top", fill="both", expand=True)
 
+    def _reload_components(self):
+        d = self._my_calendar.get_date()
+        starts_at = datetime(d.year, d.month, d.day, 9, 0)
+        ends_at = datetime(d.year, d.month, d.day, 17, 0)
+        self._activity_form.reset(starts_at, ends_at)
+        self.update_activities_view(starts_at)
+
+    def update_activities_view(self, dt: datetime):
+        done = self._filter_row.get()
+        activities = self._db_manager.get_activities(dt, dt, done=done)
+        self._activities_view.clear()
+        for activity in activities:
+            self._activities_view.add_activity(activity)
+
     def on_activity_form_add_btn_clicked(self, starts_at: datetime, ends_at: datetime, description: str):
         try:
-            activity = self._db_manager.add_activity(description, starts_at, ends_at)
+            self._db_manager.add_activity(description, starts_at, ends_at)
             messagebox.showinfo("成功", "活動新增成功")
             d = self._my_calendar.get_date()
-            if starts_at.date() == d or ends_at.date() == d:
-                self._activities_view.add_activity(
-                    activity.id_, 
-                    activity.starts_at, 
-                    activity.ends_at, 
-                    activity.description
-                )
+            starts_at = datetime(d.year, d.month, d.day, 9, 0)
+            ends_at = datetime(d.year, d.month, d.day, 17, 0)
+            self._activity_form.reset(starts_at, ends_at)
+            self.update_activities_view(starts_at)
         except:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
-    def update_activities_view(self, dt: datetime):
-        activities = self._db_manager.get_activities(dt, dt)
-        self._activities_view.clear()
-        for activity in activities:
-            self._activities_view.add_activity(
-                activity.id_, 
-                activity.starts_at, 
-                activity.ends_at, 
-                activity.description
-            )
-
     def on_activity_form_delete_btn_clicked(self, id_: int):
+        confirm = messagebox.askyesno("確認", "你確定要刪除這個活動嗎")
+        if not confirm:
+            return
         try:
             self._db_manager.remove_activity(id_)
             messagebox.showinfo("成功", "活動刪除成功")
-            d = self._my_calendar.get_date()
-            dt = datetime(d.year, d.month, d.day)
-            self.update_activities_view(dt)
+            self._reload_components()
         except:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
-    def on_activity_form_modify_btn_clicked(self, id_: int, starts_at: datetime, ends_at: datetime, description: str):
+    def on_activity_form_modify_btn_clicked(self, id_: int, starts_at: datetime, ends_at: datetime, description: str, done: bool):
         try:
-            self._db_manager.modify_activity(id_, description, starts_at, ends_at)
-            messagebox.showinfo("成功", "活動新增成功")
-            d = self._my_calendar.get_date()
-            dt = datetime(d.year, d.month, d.day)
-            self.update_activities_view(dt)
-        except:
+            self._db_manager.modify_activity(id_, description, starts_at, ends_at, done)
+            messagebox.showinfo("成功", "活動修改成功")
+            self._reload_components()
+        except Exception as e:
+            print(e)
             messagebox.showerror("錯誤", "資料庫錯誤")
 
     def on_activity_form_cancel_btn_clicked(self):
         d = self._my_calendar.get_date()
-        dt = datetime(d.year, d.month, d.day)
-        self._activity_form.set_starts_at(dt)
-        self._activity_form.set_ends_at(dt)
-        self._activity_form.set_description("")
+        starts_at = datetime(d.year, d.month, d.day, 0, 0)
+        ends_at = datetime(d.year, d.month, d.day, 17, 0)
+        self._activity_form.reset(starts_at, ends_at)
 
     def on_calander_date_selected(self):
-        d = self._my_calendar.get_date()
-        dt = datetime(d.year, d.month, d.day)
-        self._activity_form.set_activity_id(None)
-        self._activity_form.set_starts_at(dt)
-        self._activity_form.set_ends_at(dt)
-        self._activity_form.set_description("")
-        self.update_activities_view(dt)
+        self._reload_components()
+
+    def on_filter_row_option_changed(self, done: bool | None):
+        self._reload_components()
 
     def on_activities_view_activity_selected(self, activity_id: int | None):
         self._activity_form.set_activity_id(activity_id)
@@ -119,6 +119,7 @@ class TodoList:
             self._activity_form.set_starts_at(activity.starts_at)
             self._activity_form.set_ends_at(activity.ends_at)
             self._activity_form.set_description(activity.description)
+            self._activity_form.set_done(activity.done)
 
     def on_sidebar_add_tag_btn_clicked(self, tag_name: str):
         try:

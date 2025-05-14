@@ -18,6 +18,7 @@ class ActivityForm(Base):
         self._activity_id: int | None = None
 
         self._activity_var = tk.StringVar(value="")
+        self._done_var = tk.BooleanVar(value=False)
 
         self._top_frame = tk.Frame(self.frame)
         self._top_frame.pack(fill="x")
@@ -48,6 +49,8 @@ class ActivityForm(Base):
 
         self._activity_label = tk.Label(self._center_frame, text="活動描述")
         self._activity_label.pack(anchor="w")
+
+        self._done_checkbox = tk.Checkbutton(self._center_frame, onvalue=True, offvalue=False, text="已完成", variable=self._done_var)
 
         self._activity_entry = tk.Entry(self._center_frame, textvariable=self._activity_var)
         self._activity_entry.pack(fill="x")
@@ -90,15 +93,32 @@ class ActivityForm(Base):
     def get_activity_id(self) -> int | None:
         return self._activity_id
     
+    def get_done(self) -> bool:
+        return self._done_var.get()
+    
+    def set_done(self, done: bool):
+        self._done_var.set(done)
+    
     def _make_btns_normal(self):
+        self._add_activity_btn.configure(state="disabled")
         self._delete_activity_btn.configure(state="normal")
         self._modify_activity_btn.configure(state="normal")
         self._cancel_btn.configure(state="normal")
+        self._done_checkbox.pack(anchor="w")
 
     def _make_btns_disabled(self):
+        self._add_activity_btn.configure(state="normal")
         self._delete_activity_btn.configure(state="disabled")
         self._modify_activity_btn.configure(state="disabled")
         self._cancel_btn.configure(state="disabled")
+        self._done_checkbox.pack_forget()
+
+    def reset(self, starts_at: datetime, ends_at: datetime):
+        self.set_starts_at(starts_at)
+        self.set_ends_at(ends_at)
+        self.set_description("")
+        self.set_done(False)
+        self.set_activity_id(None)
     
     def set_activity_id(self, activity_id: int | None):
         self._activity_id = activity_id
@@ -123,20 +143,19 @@ class ActivityForm(Base):
         starts_at = self.get_starts_at()
         ends_at = self.get_ends_at()
         description = self.get_description()
+        done = self._done_var.get()
 
         if not description:
             messagebox.showwarning("警告", "請輸入活動名稱")
             return
         
-        self.on_modify_btn_clicked_cb(self._activity_id, starts_at, ends_at, description)
+        self.on_modify_btn_clicked_cb(self._activity_id, starts_at, ends_at, description, done)
 
     def on_cancel_btn_clicked(self):
         self.on_cancel_btn_clicked_cb()
-        self.set_activity_id(None)
 
     def on_delete_btn_clicked(self):
         self.on_delete_btn_clicked_cb(self._activity_id)
-        self.set_activity_id(None)
 
 
 if __name__ == "__main__":

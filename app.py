@@ -78,7 +78,7 @@ class TodoList(EventListener):
         try:
             tag = self.db_manager.add_tag(data.name)
             event = Event(EventType.TAG_ADDED, tag)
-            messagebox.showinfo("成功", "活動新增成功")
+            messagebox.showinfo("成功", "標籤新增成功")
             event.emit()
         except:
             messagebox.showerror("錯誤", "資料庫錯誤")

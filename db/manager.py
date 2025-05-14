@@ -16,7 +16,8 @@ class DatabaseManager:
                 id_=activity.id_, 
                 starts_at=activity.starts_at, 
                 ends_at=activity.ends_at, 
-                description=activity.name
+                description=activity.name, 
+                done=activity.done
             )
             return local_activity
 
@@ -28,7 +29,7 @@ class DatabaseManager:
             session.delete(activity)
             session.commit()
 
-    def modify_activity(self, activity_id: int, name: str, starts_at: datetime, ends_at: datetime) -> local.Activity:
+    def modify_activity(self, activity_id: int, name: str, starts_at: datetime, ends_at: datetime, done: bool) -> local.Activity:
         with Session(self._engine) as session:
             activity = session.query(db.Activity).filter(db.Activity.id_ == activity_id).first()
             if not activity:
@@ -36,34 +37,44 @@ class DatabaseManager:
             activity.name = name
             activity.starts_at = starts_at
             activity.ends_at = ends_at
+            activity.done = done
             session.commit()
             local_activity = local.Activity(
-                id_=activity.id_, 
-                starts_at=activity.starts_at, 
-                ends_at=activity.ends_at, 
-                description=activity.name
+                id_=activity_id, 
+                starts_at=starts_at, 
+                ends_at=ends_at, 
+                description=name, 
+                done=done
             )
             return local_activity
 
-    def get_activities(self, starts_at: datetime | None, ends_at: datetime | None, tags: list[str] | None = None) -> list[local.Activity]:
+    def get_activities(self, starts_at: datetime | None, ends_at: datetime | None, tags: list[str] | None = None, done: bool | None = None) -> list[local.Activity]:
         with Session(self._engine) as session:
             query = session.query(db.Activity)
+
+            if done is not None:
+                query = query.filter(db.Activity.done == done)
+
+            td_start = datetime(starts_at.year, starts_at.month, starts_at.day, 0, 0)
+            td_end = datetime(ends_at.year, ends_at.month, ends_at.day, 0, 0)
             if starts_at and ends_at:
                 query = query.filter(or_(
-                    and_(db.Activity.starts_at >= starts_at, db.Activity.starts_at < starts_at + timedelta(days=1)), 
-                    and_(db.Activity.ends_at >= ends_at, db.Activity.ends_at < ends_at + timedelta(days=1))
+                    and_(db.Activity.starts_at >= td_start, db.Activity.starts_at < td_start + timedelta(days=1)), 
+                    and_(db.Activity.ends_at >= td_end, db.Activity.ends_at < td_end + timedelta(days=1))
                 ))
             elif starts_at:
-                query = query.filter(db.Activity.starts_at >= starts_at, db.Activity.starts_at < starts_at + timedelta(days=1))
+                query = query.filter(db.Activity.starts_at >= td_start, db.Activity.starts_at < td_start + timedelta(days=1))
             elif ends_at:
-                query = query.filter(db.Activity.ends_at >= ends_at, db.Activity.ends_at < ends_at + timedelta(days=1))
+                query = query.filter(db.Activity.ends_at >= td_end, db.Activity.ends_at < td_end + timedelta(days=1))
+
             activities = query.all()
             local_activities = [
                 local.Activity(
                     id_=activity.id_, 
                     starts_at=activity.starts_at, 
                     ends_at=activity.ends_at, 
-                    description=activity.name
+                    description=activity.name, 
+                    done=activity.done
                 ) for activity in activities
             ]
             return local_activities
@@ -79,7 +90,8 @@ class DatabaseManager:
                 activity.id_, 
                 activity.starts_at, 
                 activity.ends_at, 
-                activity.name
+                activity.name, 
+                done=activity.done
             )
         
     def add_tag(self, name: str) -> local.Tag:
@@ -92,7 +104,8 @@ class DatabaseManager:
                     id_=activity.id_, 
                     starts_at=activity.starts_at, 
                     ends_at=activity.ends_at, 
-                    description=activity.name
+                    description=activity.name, 
+                    done=activity.done
                 ) for activity in tag.activities
             ])
             return tag_local
@@ -127,6 +140,7 @@ class DatabaseManager:
                 [local.Activity(
                     activity.id_, 
                     activity.starts_at, 
-                    activity.ends_at
+                    activity.ends_at, 
+                    done=activity.done
                 ) for activity in tag.activities]
             )

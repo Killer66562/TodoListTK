@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship, mapped_column, Mapped, DeclarativeBase
-from sqlalchemy import ForeignKey, Integer, String, DateTime, Table, Column
+from sqlalchemy import ForeignKey, Integer, String, DateTime, Table, Column, Boolean
 from datetime import datetime
 
 
@@ -21,6 +21,7 @@ class Activity(Base):
     name: Mapped[str] = mapped_column(String, unique=False, index=False, nullable=False)
     starts_at: Mapped[datetime] = mapped_column(DateTime, unique=False, index=False, nullable=False)
     ends_at: Mapped[datetime] = mapped_column(DateTime, unique=False, index=False, nullable=False)
+    done: Mapped[bool] = mapped_column(Boolean, unique=False, index=False, nullable=False, default=False)
 
     tags: Mapped[list["Tag"]] = relationship("Tag", activity_tags_table, uselist=True, back_populates="activities")
 
