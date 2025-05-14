@@ -86,7 +86,7 @@ class TodoList:
             starts_at = datetime(d.year, d.month, d.day, 9, 0)
             ends_at = datetime(d.year, d.month, d.day, 17, 0)
             self._activity_form.reset(starts_at, ends_at)
-            self.update_activities_view(starts_at)
+            self._reload_components()
         except:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
