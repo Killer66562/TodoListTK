@@ -2,6 +2,7 @@ import tkinter as tk
 import os
 
 from tkinter import ttk
+from tkinter import messagebox
 from typing import Callable
 from PIL import Image, ImageTk
 
@@ -12,8 +13,15 @@ from ui.tag import TagButton
 from .base import Base
 
 class SideBar(Base):
-    def __init__(self, master, on_add_tag_btn_clicked_cb: Callable[[str], None]):
+    def __init__(
+        self, master, 
+        on_add_tag_btn_clicked_cb: Callable[[str], None], 
+        on_all_btn_clicked_cb: Callable[[], None], 
+        on_today_btn_clicked_cb: Callable[[], None]
+    ):
         super().__init__(master)
+        self._filter = None
+
         self._tag_var = tk.StringVar(value="")
 
         self._frame_open = True
@@ -42,14 +50,11 @@ class SideBar(Base):
         self.title_label = ttk.Label(self.bottom_frame, text="TodoList", font=("Arial", 20))
         self.title_label.pack(pady=10)
 
-        self.index_btn = btn = ttk.Button(self.bottom_frame, text="全部")
+        self.index_btn = ttk.Button(self.bottom_frame, text="全部", command=self.on_all_btn_clicked)
         self.index_btn.pack(fill="x", pady=5, padx=10)
 
-        self.today_btn = btn = ttk.Button(self.bottom_frame, text="今天")
+        self.today_btn = ttk.Button(self.bottom_frame, text="今天", command=self.on_today_btn_clicked)
         self.today_btn.pack(fill="x", pady=5, padx=10)
-
-        self.preview_btn = btn = ttk.Button(self.bottom_frame, text="近期")
-        self.preview_btn.pack(fill="x", pady=5, padx=10)
             
         # 行事曆按鈕
         self.calendar_button = ttk.Button(
@@ -88,9 +93,14 @@ class SideBar(Base):
         self.settings_button.pack(side="bottom", pady=10, padx=10, fill="x")
 
         self.on_add_tag_btn_clicked_cb = on_add_tag_btn_clicked_cb
+        self.on_all_btn_clicked_cb = on_all_btn_clicked_cb
+        self.on_today_btn_clicked_cb = on_today_btn_clicked_cb
 
     def on_add_tag_btn_clicked(self):
         tag_name = self._tag_var.get()
+        if not tag_name:
+            messagebox.showwarning(title="警告", message="請輸入標籤名稱")
+            return
         self.on_add_tag_btn_clicked_cb(tag_name)
         self._tag_var.set("")
 
@@ -114,6 +124,21 @@ class SideBar(Base):
             self._tag_btns.append(TagButton(self.bottom_frame, tag.name, main_btn_cb, delete_btn_cb))
         for tag_btn in self._tag_btns:
             tag_btn.frame.pack(fill="x", pady=2, padx=20)
+
+    def on_all_btn_clicked(self):
+        self._filter = "all"
+        self.on_all_btn_clicked_cb()
+
+    def on_today_btn_clicked(self):
+        self._filter = "today"
+        self.on_today_btn_clicked_cb()
+
+    def get_filter(self) -> str:
+        return self._filter
+    
+    def reset_filter(self):
+        self._filter = None
+        
 
 if __name__ == "__main__":
     window = tk.Tk()

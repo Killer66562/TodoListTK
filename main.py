@@ -32,7 +32,12 @@ class TodoList:
 
         self._main_frame = tk.Frame(self._window)
 
-        self._sidebar = SideBar(self._window, self.on_sidebar_add_tag_btn_clicked)
+        self._sidebar = SideBar(
+            self._window, 
+            self.on_sidebar_add_tag_btn_clicked, 
+            self.on_sidebar_all_btn_clicked, 
+            self.on_sidebar_today_btn_clicked
+        )
         self._sidebar.frame.configure(width=200)
         self._sidebar.frame.pack_propagate(False)
         self._sidebar.frame.pack(side="left", fill="y")
@@ -66,6 +71,7 @@ class TodoList:
         starts_at = datetime(d.year, d.month, d.day, 9, 0)
         ends_at = datetime(d.year, d.month, d.day, 17, 0)
         self._activity_form.reset(starts_at, ends_at)
+        self._sidebar.reset_filter()
         all_activities = self._db_manager.get_activities()
         for activity in all_activities:
             d_start = activity.starts_at.date()
@@ -78,9 +84,18 @@ class TodoList:
             self._my_calendar.calendar.tag_config(tag_end, background="red")
         self.update_activities_view(d)
 
-    def update_activities_view(self, d: date):
+    def update_activities_view(self, d: date | None):
         done = self._filter_row.get()
-        activities = self._db_manager.get_activities(d, done=done)
+        filt = self._sidebar.get_filter()
+        if filt == "all":
+            activities = self._db_manager.get_activities(None, done=done)
+        elif filt == "today":
+            today = date.today()
+            activities = self._db_manager.get_activities(today, done=done)
+        elif filt == "recent":
+            activities = []
+        else:
+            activities = self._db_manager.get_activities(d, done=done)
         self._activities_view.clear()
         for activity in activities:
             self._activities_view.add_activity(activity)
@@ -124,10 +139,24 @@ class TodoList:
         self._activity_form.reset(starts_at, ends_at)
 
     def on_calander_date_selected(self):
-        self._reload_components()
+        '''
+        activity_form的起始和結束設成日曆那天
+        清掉sidebar的狀態
+        '''
+        d = self._my_calendar.get_date()
+        starts_at = datetime(d.year, d.month, d.day, 9, 0)
+        ends_at = datetime(d.year, d.month, d.day, 17, 0)
+        self._activity_form.set_starts_at(starts_at)
+        self._activity_form.set_ends_at(ends_at)
+        self._sidebar.reset_filter()
+        self.update_activities_view(d)
 
     def on_filter_row_option_changed(self, done: bool | None):
-        self._reload_components()
+        '''
+        
+        '''
+        d = self._my_calendar.get_date()
+        self.update_activities_view(d)
 
     def on_activities_view_activity_selected(self, activity_id: int | None):
         self._activity_form.set_activity_id(activity_id)
@@ -166,8 +195,33 @@ class TodoList:
         except:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
+    def on_sidebar_all_btn_clicked(self):
+        try:
+            self.update_activities_view(None)
+        except:
+            messagebox.showerror("錯誤", "資料庫錯誤")
+
+    def on_sidebar_today_btn_clicked(self):
+        try:
+            today = date.today()
+            starts_at = datetime(today.year, today.month, today.day, 9, 0)
+            ends_at = datetime(today.year, today.month, today.day, 17, 0)
+            self._activity_form.set_starts_at(starts_at)
+            self._activity_form.set_ends_at(ends_at)
+            self._my_calendar.set_date(today)
+            self.update_activities_view(today)
+        except:
+            messagebox.showerror("錯誤", "資料庫錯誤")
+
+    def on_sidebar_recent_btn_clicked(self):
+        try:
+            today = date.today()
+            self.update_activities_view(today)
+        except:
+            messagebox.showerror("錯誤", "資料庫錯誤")
+
     def run(self):
-        self.on_calander_date_selected()
+        self._reload_components()
 
         tags = self._db_manager.get_tags()
         self._sidebar.set_tag_btns(tags, self.on_tag_find, self.on_tag_delete)
