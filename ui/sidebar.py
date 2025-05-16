@@ -17,7 +17,8 @@ class SideBar(Base):
         self, master, 
         on_add_tag_btn_clicked_cb: Callable[[str], None], 
         on_all_btn_clicked_cb: Callable[[], None], 
-        on_today_btn_clicked_cb: Callable[[], None]
+        on_today_btn_clicked_cb: Callable[[], None], 
+        on_settings_btn_clicked_cb: Callable[[], None]
     ):
         super().__init__(master)
         self._filter = None
@@ -89,12 +90,14 @@ class SideBar(Base):
         self.settings_button = ttk.Button(
             self.bottom_frame,
             text="設定",
+            command=self.on_settings_btn_clicked
         )
         self.settings_button.pack(side="bottom", pady=10, padx=10, fill="x")
 
         self.on_add_tag_btn_clicked_cb = on_add_tag_btn_clicked_cb
         self.on_all_btn_clicked_cb = on_all_btn_clicked_cb
         self.on_today_btn_clicked_cb = on_today_btn_clicked_cb
+        self.on_settings_btn_clicked_cb = on_settings_btn_clicked_cb
 
     def on_add_tag_btn_clicked(self):
         tag_name = self._tag_var.get()
@@ -132,6 +135,9 @@ class SideBar(Base):
     def on_today_btn_clicked(self):
         self._filter = "today"
         self.on_today_btn_clicked_cb()
+
+    def on_settings_btn_clicked(self):
+        self.on_settings_btn_clicked_cb()
 
     def get_filter(self) -> str:
         return self._filter

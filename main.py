@@ -10,9 +10,9 @@ from ui.sidebar import SideBar
 from ui.my_calendar import MyCalendar
 from ui.activity_form import ActivityForm
 from ui.activities_view import ActivitiesView
-from ui.tag import TagButton
 
 from ui.styles_setting import create_light_style, create_dark_style
+from ui.settings_frame import SettingsFrame
 
 
 class TodoList:
@@ -36,7 +36,8 @@ class TodoList:
             self._window, 
             self.on_sidebar_add_tag_btn_clicked, 
             self.on_sidebar_all_btn_clicked, 
-            self.on_sidebar_today_btn_clicked
+            self.on_sidebar_today_btn_clicked, 
+            self.on_sidebar_settings_btn_clicked
         )
         self._sidebar.frame.configure(width=200)
         self._sidebar.frame.pack_propagate(False)
@@ -59,6 +60,8 @@ class TodoList:
 
         self._activities_view = ActivitiesView(self._main_frame, self.on_activities_view_activity_selected)
         self._activities_view.frame.pack(side="top", fill="both", expand=True)
+
+        self._settings = SettingsFrame(self._window)
 
     def _switch_frame(self, frame: tk.Frame):
         if self._current_frame:
@@ -168,6 +171,8 @@ class TodoList:
             self._activity_form.set_done(activity.done)
 
     def on_sidebar_add_tag_btn_clicked(self, tag_name: str):
+        if self._current_frame is not self._main_frame:
+            self._switch_frame(self._main_frame)
         try:
             self._db_manager.add_tag(tag_name)
             messagebox.showinfo("成功", "標籤新增成功")
@@ -178,6 +183,12 @@ class TodoList:
         except Exception as e:
             print(e)
             messagebox.showerror("錯誤", "資料庫錯誤")
+
+    def on_sidebar_settings_btn_clicked(self):
+        if self._current_frame is self._settings.frame:
+            self._switch_frame(self._main_frame)
+        else:
+            self._switch_frame(self._settings.frame)
 
     def on_tag_find(self, name: str):
         try:
@@ -196,12 +207,16 @@ class TodoList:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
     def on_sidebar_all_btn_clicked(self):
+        if self._current_frame is not self._main_frame:
+            self._switch_frame(self._main_frame)
         try:
             self.update_activities_view(None)
         except:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
     def on_sidebar_today_btn_clicked(self):
+        if self._current_frame is not self._main_frame:
+            self._switch_frame(self._main_frame)
         try:
             today = date.today()
             starts_at = datetime(today.year, today.month, today.day, 9, 0)
@@ -214,6 +229,8 @@ class TodoList:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
     def on_sidebar_recent_btn_clicked(self):
+        if self._current_frame is not self._main_frame:
+            self._switch_frame(self._main_frame)
         try:
             today = date.today()
             self.update_activities_view(today)
@@ -222,6 +239,9 @@ class TodoList:
 
     def run(self):
         self._reload_components()
+
+        create_dark_style()
+        create_light_style()
 
         tags = self._db_manager.get_tags()
         self._sidebar.set_tag_btns(tags, self.on_tag_find, self.on_tag_delete)
