@@ -1,5 +1,7 @@
 from datetime import datetime
 from tkinter import messagebox
+
+from models.local import Activity
 from .base import Base
 from .datetime_row import DateTimeRow
 from typing import Callable
@@ -15,7 +17,8 @@ class ActivityForm(Base):
         on_cancel_btn_clicked_cb: Callable[[], None]
     ):
         super().__init__(master)
-        self._activity_id: int | None = None
+        self._activity: Activity | None = None
+        self._tag_labels = []
 
         self._activity_var = tk.StringVar(value="")
         self._done_var = tk.BooleanVar(value=False)
@@ -50,10 +53,13 @@ class ActivityForm(Base):
         self._activity_label = tk.Label(self._center_frame, text="活動描述")
         self._activity_label.pack(anchor="w")
 
-        self._done_checkbox = tk.Checkbutton(self._center_frame, onvalue=True, offvalue=False, text="已完成", variable=self._done_var)
-
         self._activity_entry = tk.Entry(self._center_frame, textvariable=self._activity_var)
         self._activity_entry.pack(fill="x")
+
+        self._center_bottom_frame = tk.Frame(self._center_frame)
+        self._center_bottom_frame.pack(fill="x")
+
+        self._done_checkbox = tk.Checkbutton(self._center_bottom_frame, onvalue=True, offvalue=False, text="已完成", variable=self._done_var)
 
         self._add_activity_btn = tk.Button(self._bottom_frame, text="新增活動", command=self.on_add_btn_clicked)
         self._add_activity_btn.pack(side="left")
@@ -91,20 +97,35 @@ class ActivityForm(Base):
         self._activity_var.set(description)
 
     def get_activity_id(self) -> int | None:
-        return self._activity_id
+        return self._activity.id_
     
     def get_done(self) -> bool:
         return self._done_var.get()
     
     def set_done(self, done: bool):
         self._done_var.set(done)
+
+    def _clear_tag_labels(self):
+        for tag_label in self._tag_labels:
+            tag_label.pack_forget()
+        self._tag_labels.clear()
+        self._center_bottom_frame.pack_forget()
     
     def _make_btns_normal(self):
         self._add_activity_btn.configure(state="disabled")
         self._delete_activity_btn.configure(state="normal")
         self._modify_activity_btn.configure(state="normal")
         self._cancel_btn.configure(state="normal")
-        self._done_checkbox.pack(anchor="w")
+
+        self._clear_tag_labels()
+        if not self._activity or not self._activity.tags:
+            return
+        for tag in self._activity.tags:
+            tag_label = tk.Label(self._center_bottom_frame, text=tag.name)
+            self._tag_labels.append(tag_label)
+            tag_label.pack(side="left")
+        self._center_bottom_frame.pack(fill="x")
+
 
     def _make_btns_disabled(self):
         self._add_activity_btn.configure(state="normal")
@@ -112,17 +133,19 @@ class ActivityForm(Base):
         self._modify_activity_btn.configure(state="disabled")
         self._cancel_btn.configure(state="disabled")
         self._done_checkbox.pack_forget()
+        self._clear_tag_labels()
+
 
     def reset(self, starts_at: datetime, ends_at: datetime):
         self.set_starts_at(starts_at)
         self.set_ends_at(ends_at)
         self.set_description("")
         self.set_done(False)
-        self.set_activity_id(None)
+        self.set_activity(None)
     
-    def set_activity_id(self, activity_id: int | None):
-        self._activity_id = activity_id
-        if self._activity_id:
+    def set_activity(self, activity: Activity | None):
+        self._activity = activity
+        if self._activity:
             self._make_btns_normal()
         else:
             self._make_btns_disabled()
@@ -149,13 +172,14 @@ class ActivityForm(Base):
             messagebox.showwarning("警告", "請輸入活動名稱")
             return
         
-        self.on_modify_btn_clicked_cb(self._activity_id, starts_at, ends_at, description, done)
+        self.on_modify_btn_clicked_cb(self._activity.id_, starts_at, ends_at, description, done)
 
     def on_cancel_btn_clicked(self):
         self.on_cancel_btn_clicked_cb()
 
     def on_delete_btn_clicked(self):
-        self.on_delete_btn_clicked_cb(self._activity_id)
+        if self._activity:
+            self.on_delete_btn_clicked_cb(self._activity.id_)
 
 
 if __name__ == "__main__":

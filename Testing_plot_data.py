@@ -16,7 +16,7 @@ class PlotDataTestApp:
         style = ttk.Style(self.window)
         style.theme_use("light")
 
-        self.sidebar = SideBar(self.window, self.on_dummy_callback)
+        self.sidebar = SideBar(self.window, None, None, None)
         self.sidebar.frame.configure(width=200)
         self.sidebar.frame.pack_propagate(False)
         self.sidebar.frame.pack(side="left", fill="y")

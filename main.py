@@ -159,9 +159,9 @@ class TodoList:
         self.update_activities_view(d)
 
     def on_activities_view_activity_selected(self, activity_id: int | None):
-        self._activity_form.set_activity_id(activity_id)
         if activity_id:
             activity = self._db_manager.get_activity(activity_id)
+            self._activity_form.set_activity(activity)
             self._activity_form.set_starts_at(activity.starts_at)
             self._activity_form.set_ends_at(activity.ends_at)
             self._activity_form.set_description(activity.description)

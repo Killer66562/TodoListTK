@@ -91,7 +91,11 @@ class DatabaseManager:
                 activity.starts_at, 
                 activity.ends_at, 
                 activity.name, 
-                done=activity.done
+                done=activity.done, 
+                tags=[local.Tag(
+                    tag.id_, 
+                    tag.name
+                ) for tag in activity.tags]
             )
         
     def add_tag(self, name: str) -> local.Tag:
