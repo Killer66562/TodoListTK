@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from ui.sidebar import SideBar
-from ui.plot_data import PlotDataFrame
+from ui.plot_data import PlotDataWindow
 from ui.styles_setting import create_light_style, create_dark_style
 
 
@@ -21,11 +21,11 @@ class PlotDataTestApp:
         self.sidebar.frame.pack_propagate(False)
         self.sidebar.frame.pack(side="left", fill="y")
 
-        self.plot_data_frame = PlotDataFrame(self.window)
-        self.plot_data_frame.frame.pack(side="left", fill="both", expand=True)
+        button = ttk.Button(self.window, text="圖表視窗", command=self.open_plot_window)
+        button.pack(pady=20)
 
-    def on_dummy_callback(self, *args, **kwargs):
-        print("模擬 Sidebar 中某個按鈕被點擊")
+    def open_plot_window(self):
+        PlotDataWindow(master=self.window)
 
     def run(self):
         self.window.mainloop()

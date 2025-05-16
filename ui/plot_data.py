@@ -1,4 +1,3 @@
-from .base import Base
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime, timedelta
@@ -6,18 +5,17 @@ import random
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 
-
 plt.rcParams['font.family'] = 'Microsoft JhengHei'
 
-# 嗨~圖表試試
-
-class PlotDataFrame(Base):
-    def __init__(self, master, **kwargs):
+class PlotDataWindow(tk.Toplevel):
+    def __init__(self, master=None):
         super().__init__(master)
+        self.title("活動圖表")
+        self.geometry("800x600")
         self._init_ui()
 
     def _init_ui(self):
-        notebook = ttk.Notebook(self.frame)
+        notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
 
         self.activities = self._generate_fake_activities()
