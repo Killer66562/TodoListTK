@@ -7,10 +7,15 @@ class DatabaseManager:
     def __init__(self, db_url: str):
         self._engine = create_engine(db_url)
 
-    def add_activity(self, name: str, starts_at: datetime, ends_at: datetime) -> local.Activity:
+    def add_activity(self, name: str, starts_at: datetime, ends_at: datetime, tags: list[local.Tag] | None = None) -> local.Activity:
         with Session(self._engine) as session:
             activity = db.Activity(name=name, starts_at=starts_at, ends_at=ends_at)
             session.add(activity)
+            if tags:
+                for tag in tags:
+                    db_tag = session.query(db.Tag).filter(db.Tag.id_ == tag.id_).first()
+                    if db_tag:
+                        activity.tags.append(db_tag)
             session.commit()
             local_activity = local.Activity(
                 id_=activity.id_, 
@@ -29,7 +34,7 @@ class DatabaseManager:
             session.delete(activity)
             session.commit()
 
-    def modify_activity(self, activity_id: int, name: str, starts_at: datetime, ends_at: datetime, done: bool) -> local.Activity:
+    def modify_activity(self, activity_id: int, name: str, starts_at: datetime, ends_at: datetime, done: bool, tags: list[local.Tag] | None = None) -> local.Activity:
         with Session(self._engine) as session:
             activity = session.query(db.Activity).filter(db.Activity.id_ == activity_id).first()
             if not activity:
@@ -38,6 +43,12 @@ class DatabaseManager:
             activity.starts_at = starts_at
             activity.ends_at = ends_at
             activity.done = done
+            activity.tags.clear()
+            if tags:
+                for tag in tags:
+                    db_tag = session.query(db.Tag).filter(db.Tag.id_ == tag.id_).first()
+                    if db_tag:
+                        activity.tags.append(db_tag)
             session.commit()
             local_activity = local.Activity(
                 id_=activity_id, 
@@ -66,6 +77,10 @@ class DatabaseManager:
                         and_(dt_1 > db.Activity.starts_at, dt_1 < db.Activity.ends_at)
                     )
                 )
+
+            if tags:
+                for tag in tags:
+                    query = query.filter(db.Activity.tags.any(name=tag))
 
             activities = query.all()
             local_activities = [

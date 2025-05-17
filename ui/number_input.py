@@ -18,7 +18,7 @@ class NumberInput(Base):
         self._num_var = tk.StringVar(value=str(default))
 
         self._label = tk.Label(self.frame, text=label)
-        self._label.pack()
+        self._label.pack(fill="x")
 
         self._iframe = tk.Frame(self.frame)
         self._iframe.pack(fill="x")

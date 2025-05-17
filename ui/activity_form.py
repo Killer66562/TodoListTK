@@ -1,6 +1,7 @@
 from datetime import datetime
 from tkinter import messagebox
 
+from models import local
 from models.local import Activity
 from .base import Base
 from .datetime_row import DateTimeRow
@@ -11,14 +12,18 @@ import tkinter as tk
 class ActivityForm(Base):
     def __init__(
         self, master, 
-        on_add_btn_clicked_cb: Callable[[datetime, datetime, str], None], 
+        tags: list[local.Tag], 
+        on_add_btn_clicked_cb: Callable[[datetime, datetime, str, list[local.Tag]], None], 
         on_delete_btn_clicked_cb: Callable[[int], None], 
-        on_modify_btn_clicked_cb: Callable[[int, datetime, datetime, str], None], 
+        on_modify_btn_clicked_cb: Callable[[int, datetime, datetime, str, list[local.Tag]], None], 
         on_cancel_btn_clicked_cb: Callable[[], None]
     ):
         super().__init__(master)
         self._activity: Activity | None = None
-        self._tag_labels = []
+        self._tag_checkboxes = []
+        self._tags = tags
+
+        self._tag_id_var_mapping: dict[int, tk.BooleanVar] = {}
 
         self._activity_var = tk.StringVar(value="")
         self._done_var = tk.BooleanVar(value=False)
@@ -59,7 +64,11 @@ class ActivityForm(Base):
         self._center_bottom_frame = tk.Frame(self._center_frame)
         self._center_bottom_frame.pack(fill="x")
 
-        self._done_checkbox = tk.Checkbutton(self._center_bottom_frame, onvalue=True, offvalue=False, text="已完成", variable=self._done_var)
+        self._tags_label = tk.Label(self._center_bottom_frame, text="標籤:")
+        self._tags_label.pack(side="left")
+
+        self._done_checkbox = tk.Checkbutton(self._bottom_frame, onvalue=True, offvalue=False, text="已完成", variable=self._done_var)
+        self._done_checkbox.pack(anchor="w")
 
         self._add_activity_btn = tk.Button(self._bottom_frame, text="新增活動", command=self.on_add_btn_clicked)
         self._add_activity_btn.pack(side="left")
@@ -77,6 +86,12 @@ class ActivityForm(Base):
         self.on_delete_btn_clicked_cb = on_delete_btn_clicked_cb
         self.on_modify_btn_clicked_cb = on_modify_btn_clicked_cb
         self.on_cancel_btn_clicked_cb = on_cancel_btn_clicked_cb
+
+        for tag in self._tags:
+            var = tk.BooleanVar(value=False)
+            self._tag_id_var_mapping[tag.id_] = var
+            label = tk.Checkbutton(self._center_bottom_frame, text=tag.name, onvalue=True, offvalue=False, variable=var)
+            label.pack(side="left")
 
     def get_starts_at(self) -> datetime:
         return self._starts_at_row.get_dt()
@@ -105,11 +120,20 @@ class ActivityForm(Base):
     def set_done(self, done: bool):
         self._done_var.set(done)
 
-    def _clear_tag_labels(self):
-        for tag_label in self._tag_labels:
-            tag_label.pack_forget()
-        self._tag_labels.clear()
-        self._center_bottom_frame.pack_forget()
+    def set_tags(self, tags: list[local.Tag]):
+        self._tags = tags
+        self.clear_tag_checkboxes()
+        for tag in self._tags:
+            var = tk.BooleanVar(value=False)
+            self._tag_id_var_mapping[tag.id_] = var
+            checkbox = tk.Checkbutton(self._center_bottom_frame, text=tag.name, onvalue=True, offvalue=False, variable=var)
+            checkbox.pack(side="left")
+            self._tag_checkboxes.append(checkbox)
+        self.update_activity_tags()
+
+    def clear_tag_checkboxes(self):
+        for tag_checkbox in self._tag_checkboxes:
+            tag_checkbox.pack_forget()
     
     def _make_btns_normal(self):
         self._add_activity_btn.configure(state="disabled")
@@ -117,24 +141,11 @@ class ActivityForm(Base):
         self._modify_activity_btn.configure(state="normal")
         self._cancel_btn.configure(state="normal")
 
-        self._clear_tag_labels()
-        if not self._activity or not self._activity.tags:
-            return
-        for tag in self._activity.tags:
-            tag_label = tk.Label(self._center_bottom_frame, text=tag.name)
-            self._tag_labels.append(tag_label)
-            tag_label.pack(side="left")
-        self._center_bottom_frame.pack(fill="x")
-
-
     def _make_btns_disabled(self):
         self._add_activity_btn.configure(state="normal")
         self._delete_activity_btn.configure(state="disabled")
         self._modify_activity_btn.configure(state="disabled")
         self._cancel_btn.configure(state="disabled")
-        self._done_checkbox.pack_forget()
-        self._clear_tag_labels()
-
 
     def reset(self, starts_at: datetime, ends_at: datetime):
         self.set_starts_at(starts_at)
@@ -142,9 +153,22 @@ class ActivityForm(Base):
         self.set_description("")
         self.set_done(False)
         self.set_activity(None)
+
+    def update_activity_tags(self):
+        for var in self._tag_id_var_mapping.values():
+            var.set(value=False)
+        if not self._activity:
+            return
+        activity_tag_ids = [activity.id_ for activity in self._activity.tags]
+        for tag_id in activity_tag_ids:
+            var = self._tag_id_var_mapping.get(tag_id)
+            if not var:
+                continue
+            var.set(value=True)
     
     def set_activity(self, activity: Activity | None):
         self._activity = activity
+        self.update_activity_tags()
         if self._activity:
             self._make_btns_normal()
         else:
@@ -158,8 +182,13 @@ class ActivityForm(Base):
         if not description:
             messagebox.showwarning("警告", "請輸入活動名稱")
             return
+        
+        tags = [local.Tag(
+            tag.id_, 
+            tag.name
+        ) for tag in self._tags if self._tag_id_var_mapping.get(tag.id_).get()]
+        self.on_add_btn_clicked_cb(starts_at, ends_at, description, tags)
 
-        self.on_add_btn_clicked_cb(starts_at, ends_at, description)
         self.set_description("")
 
     def on_modify_btn_clicked(self):
@@ -168,11 +197,16 @@ class ActivityForm(Base):
         description = self.get_description()
         done = self._done_var.get()
 
+        tags = [local.Tag(
+            tag.id_, 
+            tag.name
+        ) for tag in self._tags if self._tag_id_var_mapping.get(tag.id_).get()]
+
         if not description:
             messagebox.showwarning("警告", "請輸入活動名稱")
             return
         
-        self.on_modify_btn_clicked_cb(self._activity.id_, starts_at, ends_at, description, done)
+        self.on_modify_btn_clicked_cb(self._activity.id_, starts_at, ends_at, description, done, tags)
 
     def on_cancel_btn_clicked(self):
         self.on_cancel_btn_clicked_cb()

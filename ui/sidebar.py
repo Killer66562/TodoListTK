@@ -6,7 +6,6 @@ from tkinter import messagebox
 from typing import Callable
 from PIL import Image, ImageTk
 
-from models import local
 from models.local import Tag
 from ui.tag import TagButton
 
@@ -18,7 +17,8 @@ class SideBar(Base):
         on_add_tag_btn_clicked_cb: Callable[[str], None], 
         on_all_btn_clicked_cb: Callable[[], None], 
         on_today_btn_clicked_cb: Callable[[], None], 
-        on_settings_btn_clicked_cb: Callable[[], None]
+        on_settings_btn_clicked_cb: Callable[[], None], 
+        on_plot_btn_clicked_cb: Callable[[], None],
     ):
         super().__init__(master)
         self._filter = None
@@ -56,18 +56,12 @@ class SideBar(Base):
 
         self.today_btn = ttk.Button(self.bottom_frame, text="今天", command=self.on_today_btn_clicked)
         self.today_btn.pack(fill="x", pady=5, padx=10)
-            
-        # 行事曆按鈕
-        self.calendar_button = ttk.Button(
-            self.bottom_frame,
-            text="行事曆"
-        )
-        self.calendar_button.pack(pady=10, padx=10, fill="x")
         
         # 任務統計按鈕
         self.stats_button = ttk.Button(
             self.bottom_frame,
-            text="任務統計"
+            text="任務統計", 
+            command=self.on_plot_btn_clicked
         )
         self.stats_button.pack(pady=(0, 10), padx=10, fill="x")
 
@@ -80,7 +74,8 @@ class SideBar(Base):
         self.tag_name_label = ttk.Label(self.bottom_frame, text="標籤名稱")
         self.tag_name_label.pack(anchor="w", pady=2, padx=20)
 
-        self.tag_name_entry = ttk.Entry(self.bottom_frame, textvariable=self._tag_var)
+        self.tag_name_entry = ttk.Entry(self.bottom_frame, textvariable=self._tag_var, validate="all", 
+                                        validatecommand=self._tag_name_entry_validate)
         self.tag_name_entry.pack(fill="x", pady=2, padx=20)
 
         self.tag_add_btn = ttk.Button(self.bottom_frame, text="新增標籤", command=self.on_add_tag_btn_clicked)
@@ -98,6 +93,13 @@ class SideBar(Base):
         self.on_all_btn_clicked_cb = on_all_btn_clicked_cb
         self.on_today_btn_clicked_cb = on_today_btn_clicked_cb
         self.on_settings_btn_clicked_cb = on_settings_btn_clicked_cb
+        self.on_plot_btn_clicked_cb = on_plot_btn_clicked_cb
+
+    def _tag_name_entry_validate(self):
+        tag_name = self._tag_var.get()
+        if len(tag_name) >= 9:
+            self._tag_var.set(tag_name[:9])
+        return True
 
     def on_add_tag_btn_clicked(self):
         tag_name = self._tag_var.get()
@@ -138,6 +140,9 @@ class SideBar(Base):
 
     def on_settings_btn_clicked(self):
         self.on_settings_btn_clicked_cb()
+
+    def on_plot_btn_clicked(self):
+        self.on_plot_btn_clicked_cb()
 
     def get_filter(self) -> str:
         return self._filter

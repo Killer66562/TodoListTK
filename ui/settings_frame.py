@@ -1,10 +1,9 @@
-import tkinter as tk
 from tkinter import ttk
 from tkinter import font
 from ui.styles_setting import create_dark_style, create_light_style
 
 class SettingsFrame:
-    def __init__(self, parent):
+    def __init__(self, parent, on_mode_switch_cb):
         self.parent = parent
         self.current_theme = "light"
 
@@ -20,6 +19,8 @@ class SettingsFrame:
         )
         self.theme_button.pack(pady=20)
 
+        self.on_mode_switch_cb = on_mode_switch_cb
+
     def toggle_theme(self):
         if self.current_theme == "light":
             create_dark_style()
@@ -29,3 +30,4 @@ class SettingsFrame:
             create_light_style()
             self.current_theme = "light"
             self.theme_button.config(text="暗色模式")
+        self.on_mode_switch_cb()
