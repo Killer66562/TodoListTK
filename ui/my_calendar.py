@@ -12,12 +12,13 @@ class MyCalendar(Base):
         today = date.today()
         self._selected_date = today
 
-        self.calendar = Calendar(self.frame, selectmode='day', year=today.year, month=today.month, day=today.day, date_pattern="y-mm-dd")
+        self.calendar = Calendar(self.frame, selectmode='day', year=today.year, month=today.month, day=today.day, date_pattern="y-mm-dd", selectbackground='#1E90FF')
         self.calendar.bind("<<CalendarSelected>>", self.on_date_selected)
         self.calendar.pack(fill="both", expand=True, padx=5, pady=5)
 
         self._on_date_selected_cb = on_date_selected_cb
-
+        
+        
     def get_date(self) -> date:
         return self._selected_date
     
