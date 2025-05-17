@@ -21,6 +21,34 @@ def create_dark_style():
                     "foreground": [("disabled", "#999999"), ("!disabled", "white")]
                 }
             },
+            "Tag.TButton": {
+                "configure": {
+                    "font": ("Segoe UI", 10),
+                    "foreground": "white",
+                    "background": "#4a4a4a",
+                    "padding": [10, 6],
+                    "relief": "flat",
+                    "borderwidth": 0,
+                    "anchor": "center"
+                },
+                "map": {
+                    "background": [("active", "#5c5c5c"), ("pressed", "#333333")],
+                    "foreground": [("disabled", "#999999"), ("!disabled", "white")]
+                }
+            },
+            "TagDelete.TButton": {
+                "configure": {
+                    "font": ("Segoe UI", 10),
+                    "foreground": "white",
+                    "background": "#aa4a4a",
+                    "padding": [6, 4],
+                    "relief": "flat",
+                    "borderwidth": 0
+                },
+                "map": {
+                    "background": [("active", "#cc5c5c"), ("pressed", "#802e2e")]
+                }
+            },
             "TFrame": {
                 "configure": {
                     "background": "#1e1e1e"
@@ -111,6 +139,34 @@ def create_light_style():
                 "map": {
                     "background": [("active", "#357ab8"), ("pressed", "#2c5f94")],
                     "foreground": [("disabled", "#cccccc"), ("!disabled", "white")]
+                }
+            },
+            "Tag.TButton": {
+                "configure": {
+                    "font": ("Segoe UI", 10),
+                    "foreground": "white",
+                    "background": "#4a90e2",
+                    "padding": [10, 6],
+                    "relief": "flat",
+                    "borderwidth": 0,
+                    "anchor": "center"
+                },
+                "map": {
+                    "background": [("active", "#357ab8"), ("pressed", "#2c5f94")],
+                    "foreground": [("disabled", "#cccccc"), ("!disabled", "white")]
+                }
+            },
+            "TagDelete.TButton": {
+                "configure": {
+                    "font": ("Segoe UI", 10),
+                    "foreground": "#333333",
+                    "background": "#ffd6d6",
+                    "padding": [6, 4],
+                    "relief": "flat",
+                    "borderwidth": 0
+                },
+                "map": {
+                    "background": [("active", "#ffb3b3"), ("pressed", "#ff8080")]
                 }
             },
             "TFrame": {
