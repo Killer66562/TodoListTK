@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 from typing import Callable
 
 from .base import Base
@@ -39,5 +40,8 @@ class TagButton(Base):
             self._on_main_btn_clicked_cb(self.name)
 
     def on_delete_btn_clicked(self):
+        yes = messagebox.askyesno("確認", "你確定要刪除這個標籤嗎?\n被刪除的標籤無法復原")
+        if not yes:
+            return
         if self._on_delete_btn_clicked_cb:
             self._on_delete_btn_clicked_cb(self.name)
