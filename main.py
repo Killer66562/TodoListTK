@@ -279,7 +279,7 @@ class TodoList:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
     def _notify(self):
-        d = date(2025, 5, 20)
+        d = date.today()
         activites_e = self._db_manager.get_activities(d, done=False, e_filt=True)
         activites_f = self._db_manager.get_activities(d, done=False, e_filt=False)
         if not activites_e and not activites_f:
