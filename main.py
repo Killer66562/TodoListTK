@@ -5,7 +5,7 @@ from tkinter import ttk
 
 from db.manager import DatabaseManager
 
-from models.local import Activity, Tag
+from models.local import Tag
 from ui.filter_row import FilterRow
 from ui.sidebar import SideBar
 from ui.my_calendar import MyCalendar
@@ -26,6 +26,7 @@ class TodoList:
         self._window = tk.Tk()
         self._window.title("TodoList")
         self._window.minsize(800, 600)
+        self._window.protocol("WM_DELETE_WINDOW", self.quit)
         
         # 測試主題~
         create_dark_style()
@@ -68,6 +69,10 @@ class TodoList:
         self._settings = SettingsFrame(self._window, self.on_settings_color_mode_switch)
 
         self._selected_tag: str | None = None
+
+    def quit(self):
+        self._window.quit()
+        self._window.destroy()
 
     def _switch_frame(self, frame: tk.Frame):
         if self._current_frame:
@@ -304,6 +309,7 @@ class TodoList:
         self._switch_frame(self._main_frame)
         self._notify()
         self._window.mainloop()
+        
 
 app = TodoList()
 app.run()
