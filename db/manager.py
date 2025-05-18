@@ -59,7 +59,7 @@ class DatabaseManager:
             )
             return local_activity
 
-    def get_activities(self, d: date | None = None, tags: list[str] | None = None, done: bool | None = None) -> list[local.Activity]:
+    def get_activities(self, d: date | None = None, tags: list[str] | None = None, done: bool | None = None, e_filt: bool | None = None) -> list[local.Activity]:
         with Session(self._engine) as session:
             query = session.query(db.Activity)
 
@@ -70,13 +70,22 @@ class DatabaseManager:
                 dt_1 = datetime(d.year, d.month, d.day, 0, 0, 0)
                 dt_2 = datetime(d.year, d.month, d.day, 23, 59, 59)
 
-                query = query.filter(
-                    or_(
-                        and_(db.Activity.starts_at >= dt_1, db.Activity.starts_at <= dt_2), 
-                        and_(db.Activity.ends_at >= dt_1, db.Activity.ends_at <= dt_2), 
-                        and_(dt_1 > db.Activity.starts_at, dt_1 < db.Activity.ends_at)
+                if e_filt is None:
+                    query = query.filter(
+                        or_(
+                            and_(db.Activity.starts_at >= dt_1, db.Activity.starts_at <= dt_2), 
+                            and_(db.Activity.ends_at >= dt_1, db.Activity.ends_at <= dt_2), 
+                            and_(dt_1 > db.Activity.starts_at, dt_1 < db.Activity.ends_at)
+                        )
                     )
-                )
+                elif e_filt is True:
+                    query = query.filter(
+                        and_(db.Activity.ends_at >= dt_1, db.Activity.ends_at <= dt_2)
+                    )
+                elif e_filt is False:
+                    query = query.filter(
+                        and_(db.Activity.starts_at >= dt_1, db.Activity.starts_at <= dt_2)
+                    )
 
             if tags:
                 for tag in tags:

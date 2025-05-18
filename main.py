@@ -5,7 +5,7 @@ from tkinter import ttk
 
 from db.manager import DatabaseManager
 
-from models.local import Tag
+from models.local import Activity, Tag
 from ui.filter_row import FilterRow
 from ui.sidebar import SideBar
 from ui.my_calendar import MyCalendar
@@ -278,6 +278,19 @@ class TodoList:
         except:
             messagebox.showerror("錯誤", "資料庫錯誤")
 
+    def _notify(self):
+        d = date(2025, 5, 20)
+        activites_e = self._db_manager.get_activities(d, done=False, e_filt=True)
+        activites_f = self._db_manager.get_activities(d, done=False, e_filt=False)
+        if not activites_e and not activites_f:
+            return
+        if activites_f:
+            f_text = "將在今天開始的活動:\n" + "\n".join([activity.description for activity in activites_f])
+            messagebox.showinfo("提醒", f_text, parent=self._window)
+        if activites_e:
+            e_text = "將在今天結束的活動:\n" + "\n".join([activity.description for activity in activites_e])
+            messagebox.showinfo("提醒", e_text, parent=self._window)
+
     def run(self):
         self._reload_components()
 
@@ -289,6 +302,7 @@ class TodoList:
         self._activity_form.set_tags(tags)
 
         self._switch_frame(self._main_frame)
+        self._notify()
         self._window.mainloop()
 
 app = TodoList()
