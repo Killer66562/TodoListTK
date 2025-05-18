@@ -67,8 +67,7 @@ class ActivityForm(Base):
         self._tags_label = tk.Label(self._center_bottom_frame, text="標籤:")
         self._tags_label.pack(side="left")
 
-        self._done_checkbox = tk.Checkbutton(self._bottom_frame, onvalue=True, offvalue=False, text="已完成", variable=self._done_var)
-        self._done_checkbox.pack(anchor="w")
+        self._done_checkbox = tk.Checkbutton(self._center_bottom_frame, onvalue=True, offvalue=False, text="已完成", variable=self._done_var)
 
         self._add_activity_btn = tk.Button(self._bottom_frame, text="新增活動", command=self.on_add_btn_clicked)
         self._add_activity_btn.pack(side="left")
@@ -140,12 +139,14 @@ class ActivityForm(Base):
         self._delete_activity_btn.configure(state="normal")
         self._modify_activity_btn.configure(state="normal")
         self._cancel_btn.configure(state="normal")
+        self._done_checkbox.pack(anchor="w")
 
     def _make_btns_disabled(self):
         self._add_activity_btn.configure(state="normal")
         self._delete_activity_btn.configure(state="disabled")
         self._modify_activity_btn.configure(state="disabled")
         self._cancel_btn.configure(state="disabled")
+        self._done_checkbox.pack_forget()
 
     def reset(self, starts_at: datetime, ends_at: datetime):
         self.set_starts_at(starts_at)
