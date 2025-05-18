@@ -302,6 +302,8 @@ class TodoList:
         create_dark_style()
         create_light_style()
 
+        self._settings.load_settings()
+
         tags = self._db_manager.get_tags()
         self._sidebar.set_tag_btns(tags, self.on_tag_find, self.on_tag_delete)
         self._activity_form.set_tags(tags)
