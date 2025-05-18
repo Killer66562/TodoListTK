@@ -3,10 +3,11 @@ from tkinter import ttk
 from datetime import datetime, timedelta
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 from models import local
 
-plt.rcParams['font.family'] = 'Noto Sans TC'
+plt.rcParams['font.family'] = 'Microsoft JhengHei'
 
 
 class PlotDataWindow(tk.Toplevel):
@@ -52,6 +53,7 @@ class PlotDataWindow(tk.Toplevel):
         ax.bar([day.strftime("%a") for day in week], counts, color="skyblue")
         ax.set_title("每週活動數")
         ax.set_ylabel("數量")
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
 
         frame = ttk.Frame(notebook)
         self._embed_plot(frame, fig)
